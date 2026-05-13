@@ -1,0 +1,198 @@
+openapi: 3.0.3
+info:
+  title: Conance API
+  description: Financial trust layer for Nigerian artisans using Squad Escrow and Gemini AI.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+
+paths:
+  /auth/otp:
+    post:
+      summary: Request a phone OTP
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone_number:
+                  type: string
+                  example: "+2348000000000"
+      responses:
+        '200':
+          description: OTP sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: {type: string}
+                  otp: {type: string, description: "Only returned in sandbox/hackathon mode"}
+
+  /auth/verify:
+    post:
+      summary: Verify OTP and get token
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phone_number: {type: string}
+                otp: {type: string}
+      responses:
+        '200':
+          description: Verification successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: {type: string}
+                  message: {type: string}
+
+  /jobs:
+    post:
+      summary: Post a new job and initialize escrow
+      tags: [Jobs]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                client_id: {type: string, format: uuid}
+                title: {type: string}
+                description: {type: string}
+                category: {type: string}
+                budget_kobo: {type: integer, description: "Amount in NGN Kobo"}
+      responses:
+        '200':
+          description: Job created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+
+  /jobs/{id}/recommendations:
+    get:
+      summary: Get AI-ranked artisan recommendations
+      tags: [AI, Jobs]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: AI recommendations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recommendations: {type: string}
+
+  /artisans/{id}/recommendations:
+    get:
+      summary: Get AI-ranked job recommendations for an artisan
+      tags: [AI, Artisans]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: AI job recommendations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recommendations: {type: string}
+
+  /jobs/{id}/submit:
+    post:
+      summary: Artisan submits work for verification
+      tags: [Jobs]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                artisan_id: {type: string, format: uuid}
+                photos: {type: array, items: {type: string}}
+                note: {type: string}
+      responses:
+        '200':
+          description: Work submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: {type: string}
+
+  /jobs/{id}/release:
+    post:
+      summary: Client releases funds from escrow
+      tags: [Jobs]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Funds released
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: {type: string}
+
+  /ai/transcribe:
+    post:
+      summary: Transcribe artisan voice note (STT)
+      tags: [AI]
+      requestBody:
+        required: true
+        content:
+          audio/mp3:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: Transcription text
+          content:
+            text/plain:
+              schema: {type: string}
+
+components:
+  schemas:
+    Job:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        client_id: {type: string, format: uuid}
+        title: {type: string}
+        status: {type: string}
+        budget_kobo: {type: integer}
+        squad_virtual_account: {type: string}
