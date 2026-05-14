@@ -11,7 +11,7 @@ const ClientLayout = () => {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 border border-accent">
+        <div className="min-h-screen border border-accent">
             <ArtisanNavBar />
             <main className="">
                 <div className="">

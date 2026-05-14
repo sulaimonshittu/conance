@@ -534,6 +534,7 @@ export interface Artisan {
     reviews: number;
     isElite: boolean;
     description?: string;
+    skills: string[];
 }
 
 export const MOCK_TOP_ARTISANS: Artisan[] = [
@@ -547,7 +548,8 @@ export const MOCK_TOP_ARTISANS: Artisan[] = [
         rating: 4.9,
         reviews: 127,
         isElite: true,
-        description: "Top match · 142 carpentry jobs in Yaba · 98% on-time · 0 disputes"
+        description: "Top match · 142 carpentry jobs in Yaba · 98% on-time · 0 disputes",
+        skills: ["Custom Furniture", "Wood Polishing", "Roof Trusses", "Cabinetry"]
     },
     {
         id: "art2",
@@ -559,7 +561,8 @@ export const MOCK_TOP_ARTISANS: Artisan[] = [
         rating: 4.8,
         reviews: 89,
         isElite: false,
-        description: "Great match · 45 painting jobs nearby · 95% on-time"
+        description: "Great match · 45 painting jobs nearby · 95% on-time",
+        skills: ["Interior Painting", "Wall Texturing", "Color Consultation", "Exterior Coating"]
     },
     {
         id: "art3",
@@ -571,7 +574,8 @@ export const MOCK_TOP_ARTISANS: Artisan[] = [
         rating: 4.7,
         reviews: 56,
         isElite: true,
-        description: "Highly recommended · 210 plumbing fixes in Surulere · 100% completion"
+        description: "Highly recommended · 210 plumbing fixes in Surulere · 100% completion",
+        skills: ["Pipe Installation", "Water Heater Repair", "Leak Detection", "Drain Cleaning"]
     },
     {
         id: "art4",
@@ -583,6 +587,55 @@ export const MOCK_TOP_ARTISANS: Artisan[] = [
         rating: 5.0,
         reviews: 42,
         isElite: true,
-        description: "Premium choice · Expert in smart home wiring · 0 issues reported"
+        description: "Premium choice · Expert in smart home wiring · 0 issues reported",
+        skills: ["Smart Home Wiring", "Industrial Repairs", "Lighting Design", "Solar Installation"]
+    }
+];
+
+export interface ClientJob {
+    id: string;
+    title: string;
+    artisanName: string;
+    artisanAvatar: string;
+    totalPrice: string;
+    releasedAmount: string;
+    progress: number;
+    status: 'active' | 'completed' | 'cancelled';
+    milestones: { name: string; completed: boolean }[];
+    date: string;
+}
+
+export const MOCK_CLIENT_JOBS: ClientJob[] = [
+    {
+        id: "job1",
+        title: "Custom Oak Bookshelf",
+        artisanName: "Tunde Adeyemi",
+        artisanAvatar: "https://i.pravatar.cc/150?u=tunde",
+        totalPrice: "85,000",
+        releasedAmount: "25,000",
+        progress: 29,
+        status: "active",
+        milestones: [
+            { name: "Material Sourcing", completed: true },
+            { name: "Framework Construction", completed: false },
+            { name: "Polishing & Finishing", completed: false }
+        ],
+        date: "12 May 2024"
+    },
+    {
+        id: "job2",
+        title: "Living Room Painting",
+        artisanName: "Sarah Okoro",
+        artisanAvatar: "https://i.pravatar.cc/150?u=sarah",
+        totalPrice: "45,000",
+        releasedAmount: "45,000",
+        progress: 100,
+        status: "completed",
+        milestones: [
+            { name: "Surface Prep", completed: true },
+            { name: "Base Coat", completed: true },
+            { name: "Final Coat", completed: true }
+        ],
+        date: "05 May 2024"
     }
 ];

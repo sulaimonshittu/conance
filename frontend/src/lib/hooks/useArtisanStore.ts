@@ -14,16 +14,19 @@ interface ArtisanState {
     requests: DetailedRequest[]
     transactions: Transaction[]
     pendingProposals: PendingProposal[]
+    searchResults: any[] // Using any for simplicity as Artisan type is complex across files
     isLoading: boolean
     error: string | null
-
+ 
     fetchDashboardData: () => Promise<void>
     fetchProjects: () => Promise<void>
     fetchRequests: () => Promise<void>
     fetchEarnings: () => Promise<void>
     fetchPendingProposals: () => Promise<void>
+    searchArtisans: (query: string) => Promise<void>
     cancelProposal: (id: string | number) => Promise<boolean>
     clearError: () => void
+    clearSearch: () => void
 }
 
 const useArtisanStore = create<ArtisanState>((set, get) => ({
@@ -32,6 +35,7 @@ const useArtisanStore = create<ArtisanState>((set, get) => ({
     requests: [],
     transactions: [],
     pendingProposals: [],
+    searchResults: [],
     isLoading: false,
     error: null,
 
@@ -106,6 +110,22 @@ const useArtisanStore = create<ArtisanState>((set, get) => ({
             set({ error: res.message || "Failed to load proposals", isLoading: false });
         }
     },
+
+    searchArtisans: async (query: string) => {
+        set({ isLoading: true, error: null });
+        try {
+            const res = await artisanApi.searchArtisans(query);
+            if (res.success) {
+                set({ searchResults: res.data || [], isLoading: false });
+            } else {
+                set({ error: res.message || "Search failed", isLoading: false });
+            }
+        } catch (err) {
+            set({ error: "Failed to search artisans", isLoading: false });
+        }
+    },
+
+    clearSearch: () => set({ searchResults: [], error: null, isLoading: false }),
 
     cancelProposal: async (id) => {
         set({ isLoading: true, error: null });

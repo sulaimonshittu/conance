@@ -1,7 +1,8 @@
-import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Star, MapPin, ShieldCheck, Sparkles } from 'lucide-react'
 
 interface ArtisanDetailsCardProps {
+    id: string
     name: string
     title: string
     description?: string // Map to the stats bar content in this design
@@ -16,6 +17,7 @@ interface ArtisanDetailsCardProps {
 }
 
 const ArtisanDetailsCard: React.FC<ArtisanDetailsCardProps> = ({
+    id,
     name,
     title,
     description = "Top match · 142 carpentry jobs in Yaba · 98% on-time · 0 disputes",
@@ -26,8 +28,13 @@ const ArtisanDetailsCard: React.FC<ArtisanDetailsCardProps> = ({
     reviews = 127,
     isElite = true,
 }) => {
+    const navigate = useNavigate()
+
     return (
-        <div className="bg-white p-s3 rounded-3xl shadow-sm border border-accent/10 flex flex-col gap-4 max-w-[400px]">
+        <div 
+            onClick={() => navigate(`/client/artisan-details/${id}`)}
+            className="bg-white p-s3 rounded-3xl shadow-sm border border-accent/10 flex flex-col gap-4 max-w-[400px] cursor-pointer hover:shadow-md transition-shadow active:scale-[0.99]"
+        >
             {/* Header: Avatar and Info */}
             <div className="flex gap-4">
                 <img 

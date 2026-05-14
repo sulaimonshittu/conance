@@ -5,10 +5,33 @@ import {
     MOCK_FINISHED_PROJECTS, 
     MOCK_TRANSACTIONS,
     DETAILED_MOCK_REQUESTS,
-    MOCK_PENDING_PROPOSALS
+    MOCK_PENDING_PROPOSALS,
+    MOCK_TOP_ARTISANS,
+    type Artisan
 } from "../utils/mockData";
 
 export const artisanApi = {
+    searchArtisans: async (query: string) => {
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        if (!query) return mockResponse(MOCK_TOP_ARTISANS);
+
+        const normalizedQuery = query.toLowerCase();
+        const results = MOCK_TOP_ARTISANS.filter((artisan: Artisan) => {
+            const matchesName = artisan.name.toLowerCase().includes(normalizedQuery);
+            const matchesTitle = artisan.title.toLowerCase().includes(normalizedQuery);
+            const matchesSkills = artisan.skills.some((skill) => 
+                skill.toLowerCase().includes(normalizedQuery)
+            );
+            return matchesName || matchesTitle || matchesSkills;
+        });
+        return mockResponse(results);
+    },
+
+    getArtisanDetails: async (id: string) => {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        const artisan = MOCK_TOP_ARTISANS.find((a: Artisan) => a.id === id);
+        return mockResponse(artisan || null, !!artisan, artisan ? "Success" : "Artisan not found");
+    },
     getRequests: async () => {
         return mockResponse(MOCK_REQUESTS);
     },

@@ -21,6 +21,13 @@ import CompletedJobDetails from '@/pages/artisan/jobs/CompletedJobDetails'
 import ClientHome from '@/pages/client/ClientHome'
 import ClientLayout from '@/pages/client/ClientLayout'
 import ScrollToTop from "@/lib/components/common/ScrollToTop";
+import ArtisanDetails from "@/pages/client/find-service/ArtisanDetails";
+import CreateJob from "@/pages/client/find-service/CreateJob";
+import SearchForArtisan from "@/pages/client/find-service/SearchForArtisan";
+import JobsGiven from "@/pages/client/jobs/JobsGiven";
+import Wallet from "@/pages/client/wallet/Wallet";
+import JobDetails from "@/pages/client/jobs/JobDetails";
+
 
 import {
   BrowserRouter as Router,
@@ -62,6 +69,12 @@ function App() {
           <Route path="/client" element={<ClientLayout />} >
             <Route index element={<ClientHome />} />
             <Route path="chat" element={<ChatList />} />
+            <Route path="artisan-details/:id" element={<ArtisanDetails />} />
+            <Route path="create-job" element={<CreateJob />} />
+            <Route path="search-artisan" element={<SearchForArtisan />} />
+            <Route path="jobs" element={<JobsGiven />} />
+            <Route path="wallet" element={<Wallet />} />
+            <Route path="job-details/:id" element={<JobDetails />} />
           </Route>
           {/* 404 page not found*/}
           <Route path="*" element={<PageNotFound />} />

@@ -63,12 +63,13 @@ const TopRatedArtisansNearYou = () => {
     return (
         <div className="flex flex-col gap-s3 px-s3 py-s4">
             <div className="flex items-center justify-between px-1">
-                <h2 className="text-h4 font-bold text-gray-900 tracking-tight">
-                    Top-rated near you
+                <h2 className="text-h2 font-bold text-gray-900 tracking-tight">
+                    Top-rated Artisans Near you
+                    <span className='text-text-muted/50 text-h4'>
+                        {" "}( 8 artisans )
+                    </span>
                 </h2>
-                <button className="text-primary text-[13px] font-bold hover:underline">
-                    View all
-                </button>
+
             </div>
 
             <div className="flex flex-col gap-s3">
