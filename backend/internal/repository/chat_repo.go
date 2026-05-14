@@ -41,3 +41,28 @@ func (r *ChatRepository) CreateFlag(ctx context.Context, messageID uuid.UUID, fl
 	_, err := r.db.Exec(ctx, query, messageID, flagType, severity)
 	return err
 }
+
+func (r *ChatRepository) GetMessagesByJobID(ctx context.Context, jobID uuid.UUID) ([]*Message, error) {
+	query := `
+		SELECT id, job_id, sender_id, body, redacted_body, risk_scores_json
+		FROM messages
+		WHERE job_id = $1
+		ORDER BY created_at ASC
+	`
+	rows, err := r.db.Query(ctx, query, jobID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var msgs []*Message
+	for rows.Next() {
+		m := &Message{}
+		if err := rows.Scan(&m.ID, &m.JobID, &m.SenderID, &m.Body, &m.RedactedBody, &m.RiskScores); err != nil {
+			return nil, err
+		}
+		msgs = append(msgs, m)
+	}
+	return msgs, rows.Err()
+}
+

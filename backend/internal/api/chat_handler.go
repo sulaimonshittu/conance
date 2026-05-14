@@ -51,3 +51,21 @@ func (h *ChatHandler) SendMessage(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(msg)
 }
 
+func (h *ChatHandler) GetMessages(w http.ResponseWriter, r *http.Request) {
+	jobIDStr := chi.URLParam(r, "id")
+	jobID, err := uuid.Parse(jobIDStr)
+	if err != nil {
+		http.Error(w, "invalid job_id", http.StatusBadRequest)
+		return
+	}
+
+	msgs, err := h.svc.GetJobMessages(r.Context(), jobID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(msgs)
+}
+

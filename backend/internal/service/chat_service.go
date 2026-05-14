@@ -56,3 +56,8 @@ func (s *ChatService) SendMessage(ctx context.Context, jobID, senderID uuid.UUID
 	}
 	return msg, nil
 }
+
+func (s *ChatService) GetJobMessages(ctx context.Context, jobID uuid.UUID) ([]*repository.Message, error) {
+	return s.repo.GetMessagesByJobID(ctx, jobID)
+}
+

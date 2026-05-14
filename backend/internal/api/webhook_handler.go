@@ -1,9 +1,15 @@
 package api
 
 import (
+	"bytes"
+	"crypto/hmac"
+	"crypto/sha512"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 
 	"github.com/conance/backend/internal/repository"
 	"github.com/conance/backend/internal/service"
@@ -28,6 +34,26 @@ type SquadWebhookPayload struct {
 }
 
 func (h *WebhookHandler) HandleSquad(w http.ResponseWriter, r *http.Request) {
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "failed to read body", http.StatusBadRequest)
+		return
+	}
+	r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
+	signature := r.Header.Get("x-squad-signature")
+	secret := os.Getenv("SQUAD_WEBHOOK_SECRET")
+	
+	if secret != "" && signature != "" {
+		mac := hmac.New(sha512.New, []byte(secret))
+		mac.Write(bodyBytes)
+		expectedMAC := hex.EncodeToString(mac.Sum(nil))
+		if signature != expectedMAC {
+			http.Error(w, "invalid signature", http.StatusUnauthorized)
+			return
+		}
+	}
+
 	var payload SquadWebhookPayload
 	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
