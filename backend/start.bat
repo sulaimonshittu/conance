@@ -1,0 +1,19 @@
+@echo off
+echo Starting Conance Backend Services...
+
+echo 1. Starting Postgres and Redis...
+docker-compose up -d
+
+echo 2. Running Database Migrations...
+go run github.com/pressly/goose/v3/cmd/goose@latest -dir db/migrations postgres "postgres://conance:conance@localhost:5432/conance?sslmode=disable" up
+
+echo 3. Seeding Database...
+go run scripts/seed.go
+
+echo 4. Starting API Server (in a new window)...
+start cmd /k "go run cmd\api\main.go"
+
+echo 5. Starting Background Worker (in a new window)...
+start cmd /k "go run cmd\worker\main.go"
+
+echo Everything is up and running!

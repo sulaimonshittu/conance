@@ -32,9 +32,11 @@ func main() {
 	defer pool.Close()
 
 	redisURL := os.Getenv("REDIS_URL")
-	rdb := redis.NewClient(&redis.Options{
-		Addr: redisURL,
-	})
+	opts, err := redis.ParseURL(redisURL)
+	if err != nil {
+		log.Fatalf("Invalid Redis URL: %v", err)
+	}
+	rdb := redis.NewClient(opts)
 
 	// Initialize Repos
 	jobRepo := repository.NewJobRepository(pool)
@@ -86,6 +88,7 @@ func main() {
 		r.Post("/jobs/{id}/proposals", proposalHandler.SubmitProposal)
 		r.Get("/jobs/{id}/proposals", proposalHandler.ListProposals)
 		r.Post("/jobs/{id}/messages", chatHandler.SendMessage)
+		r.Get("/jobs/{id}/messages", chatHandler.GetMessages)
 		r.Post("/jobs/{id}/assign", jobHandler.AssignArtisan)
 		r.Post("/jobs/{id}/in-progress", jobHandler.MarkInProgress)
 		r.Post("/jobs/{id}/submit", jobHandler.SubmitWork)

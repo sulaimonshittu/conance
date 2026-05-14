@@ -128,3 +128,168 @@ func (c *SquadClient) AccountLookup(ctx context.Context, req AccountLookupReques
 	}
 	return &result, nil
 }
+
+type TransferRequest struct {
+	Remark        string `json:"remark"`
+	BankCode      string `json:"bank_code"`
+	CurrencyID    string `json:"currency_id"`
+	Amount        string `json:"amount"` // string in docs usually, but kobo
+	Account       string `json:"account_number"`
+	TransactionRef string `json:"transaction_reference"`
+	AccountName   string `json:"account_name"`
+}
+
+type TransferResponse struct {
+	Status  int    `json:"status"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Data    struct {
+		TransactionReference string `json:"transaction_reference"`
+		Status               string `json:"status"`
+	} `json:"data"`
+}
+
+func (c *SquadClient) Transfer(ctx context.Context, req TransferRequest) (*TransferResponse, error) {
+	url := fmt.Sprintf("%s/payout/transfer", c.baseURL)
+	
+	req.CurrencyID = "NGN"
+	body, err := json.Marshal(req)
+	if err != nil {
+		return nil, err
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+
+	httpReq.Header.Set("Authorization", "Bearer "+c.secretKey)
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var result TransferResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	if !result.Success {
+		return nil, fmt.Errorf("squad transfer error: %s", result.Message)
+	}
+	return &result, nil
+}
+
+type RequeryResponse struct {
+	Status  int    `json:"status"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Data    struct {
+		TransactionReference string `json:"transaction_reference"`
+		Status               string `json:"status"` // e.g. success, failed, reversed
+	} `json:"data"`
+}
+
+func (c *SquadClient) RequeryTransfer(ctx context.Context, reference string) (*RequeryResponse, error) {
+	url := fmt.Sprintf("%s/payout/requery", c.baseURL)
+	
+	req := map[string]string{"transaction_reference": reference}
+	body, _ := json.Marshal(req)
+
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+
+	httpReq.Header.Set("Authorization", "Bearer "+c.secretKey)
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var result RequeryResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	if !result.Success {
+		return nil, fmt.Errorf("squad requery error: %s", result.Message)
+	}
+	return &result, nil
+}
+
+type LedgerBalanceResponse struct {
+	Status  int    `json:"status"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Data    struct {
+		Balance string `json:"balance"`
+	} `json:"data"`
+}
+
+func (c *SquadClient) LedgerBalance(ctx context.Context) (*LedgerBalanceResponse, error) {
+	url := fmt.Sprintf("%s/payout/ledger-balance", c.baseURL)
+
+	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	httpReq.Header.Set("Authorization", "Bearer "+c.secretKey)
+
+	resp, err := c.httpClient.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var result LedgerBalanceResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	if !result.Success {
+		return nil, fmt.Errorf("squad ledger error: %s", result.Message)
+	}
+	return &result, nil
+}
+
+type VerifyResponse struct {
+	Status  int    `json:"status"`
+	Success bool   `json:"success"`
+	Message string `json:"message"`
+	Data    struct {
+		TransactionStatus string `json:"transaction_status"` // success
+		TransactionRef    string `json:"transaction_ref"`
+		Amount            int    `json:"transaction_amount"`
+	} `json:"data"`
+}
+
+func (c *SquadClient) VerifyTransaction(ctx context.Context, reference string) (*VerifyResponse, error) {
+	url := fmt.Sprintf("%s/transaction/verify/%s", c.baseURL, reference)
+
+	httpReq, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	httpReq.Header.Set("Authorization", "Bearer "+c.secretKey)
+
+	resp, err := c.httpClient.Do(httpReq)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var result VerifyResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+	if !result.Success {
+		return nil, fmt.Errorf("squad verify error: %s", result.Message)
+	}
+	return &result, nil
+}
