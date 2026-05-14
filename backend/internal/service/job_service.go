@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/conance/backend/internal/ai"
+	"github.com/conance/backend/internal/repository"
 	"github.com/google/uuid"
 )
 
@@ -47,22 +48,30 @@ func (s *JobService) RecommendJobsForArtisan(ctx context.Context, artisanID uuid
 }
 
 func (s *JobService) SubmitWork(ctx context.Context, jobID, artisanID uuid.UUID, photos []string, note string) error {
-	// 1. Create submission record
+	job, err := s.repo.GetByID(ctx, jobID)
+	if err != nil {
+		return err
+	}
+	if job.ArtisanID == nil || *job.ArtisanID != artisanID {
+		return fmt.Errorf("artisan not assigned to job")
+	}
+	if job.Status != string(StatusInProgress) {
+		return fmt.Errorf("job must be in_progress to submit; current: %s", job.Status)
+	}
+
 	subID, err := s.repo.CreateSubmission(ctx, jobID, artisanID, photos, note)
 	if err != nil {
 		return err
 	}
 
-	// 2. Update job status to 'submitted'
 	if err := s.repo.UpdateStatus(ctx, jobID, string(StatusSubmitted)); err != nil {
 		return err
 	}
 
-	// 3. Async AI Verification (In a real app, this would be a background task via Asynq)
-	// For the hackathon, we'll do it synchronously or mock it
-	job, _ := s.repo.GetByID(ctx, jobID)
-	// Assuming first photo for verification
 	verified, feedback, err := s.gemini.VerifyWorkSubmission(ctx, job.Description, []byte("mock_photo_data"))
+	if err != nil {
+		return err
+	}
 	
 	status := "flagged"
 	if verified {
@@ -72,10 +81,13 @@ func (s *JobService) SubmitWork(ctx context.Context, jobID, artisanID uuid.UUID,
 	return s.repo.UpdateSubmissionAIStatus(ctx, subID, status, feedback)
 }
 
-func (s *JobService) ReleaseFunds(ctx context.Context, jobID uuid.UUID) error {
+func (s *JobService) ReleaseFunds(ctx context.Context, jobID uuid.UUID, clientID uuid.UUID) error {
 	job, err := s.repo.GetByID(ctx, jobID)
 	if err != nil {
 		return err
+	}
+	if job.ClientID != clientID {
+		return fmt.Errorf("client does not own job")
 	}
 
 	if job.Status != string(StatusSubmitted) {
@@ -92,5 +104,21 @@ func (s *JobService) ReleaseFunds(ctx context.Context, jobID uuid.UUID) error {
 		return err
 	}
 	
-	return s.repo.CreateLedgerEntry(ctx, jobID, job.BudgetKobo, "credit", "artisan_wallet", "Payment received for job completion")
+	if err := s.repo.CreateLedgerEntry(ctx, jobID, job.BudgetKobo, "credit", "artisan_wallet", "Payment received for job completion"); err != nil {
+		return err
+	}
+
+	if job.ArtisanID != nil {
+		components := map[string]any{
+			"completed_job": true,
+			"disputed":      false,
+		}
+		newScore := 50
+		if job.ArtisanID != nil {
+			newScore = 55
+		}
+		_ = s.userRepo.UpdateTrustScore(ctx, *job.ArtisanID, newScore, components)
+	}
+
+	return s.repo.UpdateStatus(ctx, jobID, string(StatusSettled))
 }

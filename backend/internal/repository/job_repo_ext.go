@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/google/uuid"
 )
@@ -78,4 +79,22 @@ func (r *JobRepository) GetJobsByCategory(ctx context.Context, category string) 
 		jobs = append(jobs, j)
 	}
 	return jobs, nil
+}
+
+func (r *JobRepository) CreateEscrowEvent(ctx context.Context, jobID uuid.UUID, eventType string, payload any, actorID *uuid.UUID) error {
+	var payloadJSON []byte
+	if payload != nil {
+		b, err := json.Marshal(payload)
+		if err != nil {
+			return err
+		}
+		payloadJSON = b
+	}
+
+	query := `
+		INSERT INTO escrow_events (job_id, type, payload, actor_id)
+		VALUES ($1, $2, $3::jsonb, $4)
+	`
+	_, err := r.db.Exec(ctx, query, jobID, eventType, payloadJSON, actorID)
+	return err
 }

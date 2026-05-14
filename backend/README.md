@@ -29,13 +29,26 @@ A financial trust layer for Nigerian artisans, built with Go, PostgreSQL/PostGIS
    ```
 
 3. **Database Migrations**:
-   The schema is located in `db/migrations/000001_init_schema.up.sql`. Apply it to your PostgreSQL instance.
+   Apply the migrations in order:
+   - `db/migrations/000001_init_schema.up.sql`
+   - `db/migrations/000002_proposals_chat_disputes.up.sql`
 
 4. **Run Server**:
    ```bash
    cd cmd/api
    go run main.go
    ```
+
+## Build (Windows EXE)
+
+From the `backend` folder:
+
+```powershell
+.\build.ps1
+.\run.ps1
+```
+
+This produces: `backend/bin/conance-api.exe`
 
 ## API Documentation
 
@@ -70,4 +83,36 @@ curl -X POST http://localhost:8080/api/v1/jobs \
 curl -X POST http://localhost:8080/api/v1/ai/transcribe \
      -H "Content-Type: audio/mp3" \
      --data-binary @voice_note.mp3
+```
+
+**4. Submit Proposal (Artisan bids on job)**
+```bash
+curl -X POST http://localhost:8080/api/v1/jobs/550e8400-e29b-41d4-a716-446655440000/proposals \
+     -H "Content-Type: application/json" \
+     -d '{
+       "artisan_id": "11111111-1111-1111-1111-111111111111",
+       "price_kobo": 450000,
+       "eta_minutes": 120,
+       "message": ""
+     }'
+```
+
+**5. Send Chat Message (Moderated)**
+```bash
+curl -X POST http://localhost:8080/api/v1/jobs/550e8400-e29b-41d4-a716-446655440000/messages \
+     -H "Content-Type: application/json" \
+     -d '{
+       "sender_id": "11111111-1111-1111-1111-111111111111",
+       "body": "I can do this today. I will arrive in 2 hours."
+     }'
+```
+
+**6. Open Dispute (AI mediator suggests split)**
+```bash
+curl -X POST http://localhost:8080/api/v1/jobs/550e8400-e29b-41d4-a716-446655440000/disputes \
+     -H "Content-Type: application/json" \
+     -d '{
+       "opener_id": "550e8400-e29b-41d4-a716-446655440000",
+       "reason": "The work was incomplete"
+     }'
 ```

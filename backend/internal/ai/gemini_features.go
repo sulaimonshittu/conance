@@ -46,8 +46,21 @@ Verify if the image shows the completed work. Return a confidence score and a br
 		return false, "", err
 	}
 
-	// Logic to parse Gemini's visual analysis
-	return "Work verified with high confidence", nil
+	if len(resp.Candidates) == 0 || resp.Candidates[0].Content == nil {
+		return false, "No verification result returned", nil
+	}
+
+	var out strings.Builder
+	for _, part := range resp.Candidates[0].Content.Parts {
+		out.WriteString(fmt.Sprintf("%v", part))
+	}
+
+	verification := strings.TrimSpace(out.String())
+	if verification == "" {
+		return false, "Empty verification result returned", nil
+	}
+
+	return true, verification, nil
 }
 
 // MatchJobsForArtisan uses Gemini to rank available jobs for an artisan based on their skills

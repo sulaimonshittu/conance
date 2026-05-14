@@ -2,8 +2,11 @@ package ai
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
@@ -12,6 +15,28 @@ import (
 type GeminiService struct {
 	client *genai.Client
 	model  *genai.GenerativeModel
+}
+
+func heuristicModeration(message string) (bool, string, bool) {
+	msg := strings.TrimSpace(message)
+	if msg == "" {
+		return true, "empty message", true
+	}
+
+	phoneRe := regexp.MustCompile(`(?i)(\+?234|0)\d{9,11}`)
+	if phoneRe.MatchString(msg) {
+		return false, "phone number detected", true
+	}
+	linkRe := regexp.MustCompile(`(?i)\b(https?://|www\.|wa\.me/|t\.me/)\S+`)
+	if linkRe.MatchString(msg) {
+		return false, "external link detected", true
+	}
+	lower := strings.ToLower(msg)
+	if strings.Contains(lower, "instagram") || strings.Contains(lower, "whatsapp") {
+		return false, "off-platform channel mentioned", true
+	}
+
+	return true, "", false
 }
 
 func NewGeminiService(ctx context.Context) (*GeminiService, error) {
@@ -36,8 +61,11 @@ func (s *GeminiService) Close() {
 	s.client.Close()
 }
 
-// ModerationCheck checks if a chat message contains off-platform contact info
 func (s *GeminiService) ModerationCheck(ctx context.Context, message string) (bool, string, error) {
+	if ok, reason, matched := heuristicModeration(message); matched {
+		return ok, reason, nil
+	}
+
 	prompt := fmt.Sprintf(`Analyze the following message for "off-platform leakage" (sharing phone numbers, bank details, or external links to bypass escrow). 
 Return ONLY a JSON object with: {"is_safe": boolean, "reason": "string"}.
 Message: "%s"`, message)
@@ -47,11 +75,33 @@ Message: "%s"`, message)
 		return false, "", err
 	}
 
-	// Simple extraction logic for hackathon (should use structured output in prod)
-	if len(resp.Candidates) > 0 {
-		// Mocking structured response parsing
-		return true, "Safe", nil
+	if len(resp.Candidates) == 0 || resp.Candidates[0].Content == nil {
+		return true, "no model output", nil
 	}
 
-	return true, "Safe", nil
+	var out strings.Builder
+	for _, part := range resp.Candidates[0].Content.Parts {
+		out.WriteString(fmt.Sprintf("%v", part))
+	}
+	raw := strings.TrimSpace(out.String())
+
+	type modResp struct {
+		IsSafe bool   `json:"is_safe"`
+		Reason string `json:"reason"`
+	}
+
+	var parsed modResp
+	if err := json.Unmarshal([]byte(raw), &parsed); err != nil {
+		if start := strings.IndexByte(raw, '{'); start >= 0 {
+			if end := strings.LastIndexByte(raw, '}'); end > start {
+				_ = json.Unmarshal([]byte(raw[start:end+1]), &parsed)
+			}
+		}
+	}
+
+	if parsed.Reason == "" {
+		parsed.Reason = raw
+	}
+
+	return parsed.IsSafe, parsed.Reason, nil
 }

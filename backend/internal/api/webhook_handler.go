@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/conance/backend/internal/repository"
 	"github.com/conance/backend/internal/service"
 )
 
 type WebhookHandler struct {
 	escrowService *service.EscrowService
+	webhooks      *repository.WebhookRepository
 }
 
-func NewWebhookHandler(es *service.EscrowService) *WebhookHandler {
-	return &WebhookHandler{escrowService: es}
+func NewWebhookHandler(es *service.EscrowService, wr *repository.WebhookRepository) *WebhookHandler {
+	return &WebhookHandler{escrowService: es, webhooks: wr}
 }
 
 type SquadWebhookPayload struct {
@@ -32,8 +34,23 @@ func (h *WebhookHandler) HandleSquad(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Squad sends NGN amounts in Kobo if specified, or check documentation
-	// For sandbox, we'll assume it matches our BIGINT kobo standard
+	raw, _ := json.Marshal(payload)
+	eventID := payload.Data.TransactionReference
+	if eventID == "" {
+		eventID = payload.Data.VirtualAccountNumber
+	}
+
+	isNew, err := h.webhooks.InsertIfNew(r.Context(), "squad", eventID, payload.Event, raw, false)
+	if err != nil {
+		http.Error(w, "failed to record webhook", http.StatusInternalServerError)
+		return
+	}
+	if !isNew {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"duplicate_ignored"}`))
+		return
+	}
+
 	if payload.Event == "virtual_account_deposit" {
 		err := h.escrowService.HandleFunded(r.Context(), payload.Data.VirtualAccountNumber, payload.Data.Amount)
 		if err != nil {
@@ -42,6 +59,8 @@ func (h *WebhookHandler) HandleSquad(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	_ = h.webhooks.MarkProcessed(r.Context(), "squad", eventID)
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"status":"success"}`))

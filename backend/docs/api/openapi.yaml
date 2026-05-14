@@ -81,6 +81,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/Job'
 
+  /jobs/voice:
+    post:
+      summary: Post a new job using a voice note (STT + intent extraction)
+      tags: [AI, Jobs]
+      parameters:
+        - name: client_id
+          in: query
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          audio/mp3:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: Job created from voice
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job: {$ref: '#/components/schemas/Job'}
+                  transcript: {type: string}
+                  intent: {type: object}
+
   /jobs/{id}/recommendations:
     get:
       summary: Get AI-ranked artisan recommendations
@@ -118,6 +146,158 @@ paths:
                 type: object
                 properties:
                   recommendations: {type: string}
+
+  /jobs/{id}/proposals:
+    post:
+      summary: Artisan submits a proposal (bid) for a job
+      tags: [Proposals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                artisan_id: {type: string, format: uuid}
+                price_kobo: {type: integer}
+                eta_minutes: {type: integer}
+                message: {type: string, description: "Optional; if omitted AI drafts it"}
+      responses:
+        '200':
+          description: Proposal submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proposal'
+    get:
+      summary: List proposals for a job (client view)
+      tags: [Proposals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Proposals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Proposal'
+
+  /proposals/{id}/accept:
+    post:
+      summary: Client accepts a proposal (hire artisan)
+      tags: [Proposals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                client_id: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: {type: string}
+
+  /jobs/{id}/messages:
+    post:
+      summary: Send a chat message (moderated)
+      tags: [Chat]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sender_id: {type: string, format: uuid}
+                body: {type: string}
+      responses:
+        '200':
+          description: Message created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+
+  /jobs/{id}/disputes:
+    post:
+      summary: Open a dispute on a job (AI mediator suggests split)
+      tags: [Disputes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                opener_id: {type: string, format: uuid}
+                reason: {type: string}
+      responses:
+        '200':
+          description: Dispute opened
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dispute'
+
+  /disputes/{id}/accept-mediation:
+    post:
+      summary: Accept mediation outcome and settle job
+      tags: [Disputes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                actor_id: {type: string, format: uuid}
+                resolution: {type: object}
+      responses:
+        '200':
+          description: Settled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: {type: string}
 
   /jobs/{id}/submit:
     post:
@@ -157,9 +337,63 @@ paths:
           in: path
           required: true
           schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                client_id: {type: string, format: uuid}
       responses:
         '200':
           description: Funds released
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: {type: string}
+
+  /jobs/{id}/assign:
+    post:
+      summary: Client hires an artisan for a funded job (assign artisan)
+      tags: [Jobs]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                artisan_id: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Assigned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: {type: string}
+
+  /jobs/{id}/in-progress:
+    post:
+      summary: Artisan marks a job as in progress
+      tags: [Jobs]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: In progress
           content:
             application/json:
               schema:
@@ -185,6 +419,36 @@ paths:
             text/plain:
               schema: {type: string}
 
+  /payout/account/lookup:
+    post:
+      summary: Validate bank account name with Squad (account lookup)
+      tags: [Payments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bank_code: {type: string, example: "000013"}
+                account_number: {type: string, example: "0123456789"}
+      responses:
+        '200':
+          description: Account lookup result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: {type: integer}
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    properties:
+                      account_name: {type: string}
+                      account_number: {type: string}
+
 components:
   schemas:
     Job:
@@ -196,3 +460,35 @@ components:
         status: {type: string}
         budget_kobo: {type: integer}
         squad_virtual_account: {type: string}
+
+    Proposal:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        job_id: {type: string, format: uuid}
+        artisan_id: {type: string, format: uuid}
+        price_kobo: {type: integer}
+        eta_minutes: {type: integer}
+        message: {type: string}
+        status: {type: string}
+
+    Message:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        job_id: {type: string, format: uuid}
+        sender_id: {type: string, format: uuid}
+        body: {type: string}
+        redacted_body: {type: string, nullable: true}
+        risk_scores_json: {type: object, nullable: true}
+
+    Dispute:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        job_id: {type: string, format: uuid}
+        opener_id: {type: string, format: uuid}
+        reason: {type: string}
+        ai_recommendation_json: {type: object, nullable: true}
+        resolution_json: {type: object, nullable: true}
+        state: {type: string}
