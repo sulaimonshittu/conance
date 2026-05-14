@@ -522,3 +522,67 @@ export const MOCK_PENDING_PROPOSALS: PendingProposal[] = [
         totalAmount: 8000
     }
 ];
+
+export interface Artisan {
+    id: string;
+    name: string;
+    title: string;
+    location: string;
+    price: string;
+    image: string;
+    rating: number;
+    reviews: number;
+    isElite: boolean;
+    description?: string;
+}
+
+export const MOCK_TOP_ARTISANS: Artisan[] = [
+    {
+        id: "art1",
+        name: "Tunde Adeyemi",
+        title: "Master Carpenter",
+        location: "0.8 km away",
+        price: "3,500",
+        image: "https://i.pravatar.cc/150?u=tunde",
+        rating: 4.9,
+        reviews: 127,
+        isElite: true,
+        description: "Top match · 142 carpentry jobs in Yaba · 98% on-time · 0 disputes"
+    },
+    {
+        id: "art2",
+        name: "Sarah Okoro",
+        title: "Professional Painter",
+        location: "1.2 km away",
+        price: "2,800",
+        image: "https://i.pravatar.cc/150?u=sarah",
+        rating: 4.8,
+        reviews: 89,
+        isElite: false,
+        description: "Great match · 45 painting jobs nearby · 95% on-time"
+    },
+    {
+        id: "art3",
+        name: "Ibrahim Musa",
+        title: "Expert Plumber",
+        location: "2.5 km away",
+        price: "4,000",
+        image: "https://i.pravatar.cc/150?u=ibrahim",
+        rating: 4.7,
+        reviews: 56,
+        isElite: true,
+        description: "Highly recommended · 210 plumbing fixes in Surulere · 100% completion"
+    },
+    {
+        id: "art4",
+        name: "Chinelo Obi",
+        title: "Electrical Engineer",
+        location: "3.1 km away",
+        price: "5,000",
+        image: "https://i.pravatar.cc/150?u=chinelo",
+        rating: 5.0,
+        reviews: 42,
+        isElite: true,
+        description: "Premium choice · Expert in smart home wiring · 0 issues reported"
+    }
+];
