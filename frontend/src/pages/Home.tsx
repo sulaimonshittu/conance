@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom"
-import useAuthStore from "@/lib/hooks/useAuthStore"
-import DirectToAuth from "../lib/components/home/onboarding/DirectToAuth"
+import useAuthStore from "@lib/hooks/useAuthStore"
+import DirectToAuth from "@lib/components/home/onboarding/DirectToAuth"
 
 const Home = () => {
     const { isAuth, role } = useAuthStore()

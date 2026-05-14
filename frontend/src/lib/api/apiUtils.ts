@@ -16,7 +16,7 @@ export interface ApiResponse<T> {
  * Helper to create a mock API response with simulated delay
  */
 export const mockResponse = async <T>(
-    data: T,
+    data: T | null,
     success: boolean = true,
     errorMsg: string = "An error occurred",
     delayMs: number = 800
@@ -25,5 +25,5 @@ export const mockResponse = async <T>(
     if (!success) {
         return { data: null, success: false, message: errorMsg };
     }
-    return { data, success: true };
+    return { data: data as T, success: true };
 };

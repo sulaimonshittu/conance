@@ -84,5 +84,24 @@ export const artisanApi = {
     cancelProposal: async (id: string | number) => {
         await new Promise(resolve => setTimeout(resolve, 1000));
         return mockResponse({ id }, true, "Proposal cancelled successfully");
+    },
+
+    getWalletSummary: async () => {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return mockResponse({
+            escrow: 60000,
+            released: 70000,
+            balance: 0,
+            accountDetails: {
+                bankName: "Wema Bank",
+                accountNumber: "0123456789",
+                accountName: "Conance Escrow - Squad"
+            }
+        });
+    },
+
+    fundWallet: async (amount: number) => {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return mockResponse({ amount }, true, "Funding request initiated. Please complete the transfer.");
     }
 };
