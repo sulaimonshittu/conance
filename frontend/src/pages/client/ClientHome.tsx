@@ -1,7 +1,9 @@
+import ArtisanNavBar from "@/lib/components/artisan/ArtisanNavBar"
+
 const ClientHome = () => {
     return (
         <div>
-            <h1>Client Home</h1>
+            <ArtisanNavBar />
         </div>
     )
 }

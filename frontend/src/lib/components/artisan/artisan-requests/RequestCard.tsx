@@ -90,7 +90,7 @@ const RequestCard = ({ request, onDecline }: RequestCardProps) => {
                     variant="primary"
                     fullWidth
                     leftIcon={<Sparkles size={18} />}
-                    onClick={() => navigate(`/artisan-propose/${request.id}`)}
+                    onClick={() => navigate(`/artisan/request-job/${request.id}`)}
                 >
                     Send Proposal
                 </Button>

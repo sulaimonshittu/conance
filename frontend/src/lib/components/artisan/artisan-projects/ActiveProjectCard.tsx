@@ -11,7 +11,7 @@ const ActiveProjectCard = ({ project }: ActiveProjectCardProps) => {
 
   return (
     <Link
-      to={`/jobs/${project.id}`}
+      to={`/artisan/ongoing-job/${project.id}`}
       className="block bg-white rounded-2xl p-s3 border border-accent hover:border-primary/30 transition-all hover:shadow-lg"
     >
       <div className="flex items-start justify-between mb-s3">

@@ -1,59 +1,53 @@
 # 📁 Conance Frontend – Architecture Overview
 
-This document outlines the folder hierarchy of the **Conance** frontend project, making it easy to navigate and understand where each piece lives.
+This document outlines the folder hierarchy and data flow of the **Conance** frontend project.
+
+## Directory Structure
 
 ```
 frontend/
-├─ .gitignore                # Git ignore rules
-├─ ARCHITECTURE.md           # ← You are here!
-├─ DESIGN.md                 # Design guidelines & UI decisions
-├─ README.md                 # Project overview & setup
-├─ eslint.config.js          # ESLint configuration
-├─ index.html                # Main HTML entry point
-├─ package.json
-├─ package-lock.json
-├─ tsconfig.json
-├─ tsconfig.app.json
-├─ tsconfig.node.json
-├─ vite.config.ts             # Vite bundler configuration
-├─ node_modules/            # Dependencies (auto‑generated)
-├─ public/                  # Static assets (favicon, robots.txt, …)
-│   └─ …
-└─ src/                     # **Source code**
-    ├─ App.tsx               # Root component with router setup
-    ├─ main.tsx              # React entry point (creates root)
-    ├─ index.css             # Tailwind import (global styles)
-    ├─ assets/               # Images, icons, etc.
-    │   └─ …
-    ├─ lib/                  # Re‑usable library code
-    │   ├─ api/               # API helpers & clients
-    │   │   ├─ artisan.ts
-    │   │   ├─ client.ts
-    │   │   ├─ auth.ts
-    │   │   └─ mock_data.ts
-    │   └─ components/        # UI components
-    │       └─ common/          
-    │           ├─ Button.tsx            # Custom button component
-    │           ├─ Input.tsx             # Input wrapper
-    │           ├─ Loader.tsx            # Loading spinner
-    │           └─ modals/                # Modal implementations
-    │               ├─ ModalNavbar.tsx   # Top navigation bar (modal style)
-    │               ├─ ModalDesktop.tsx  # Desktop‑styled modal container
-    │               └─ ModalMobile.tsx   # Mobile‑styled slide‑up drawer
-    └─ pages/                # Page‑level components (routes)
-        ├─ BaseLayout.tsx      # Layout wrapper with <Outlet/>
-        ├─ Home.tsx            # Home page example
-        ├─ auth/                # Authentication pages
-        │   ├─ Login.tsx
-        │   └─ SignUp.tsx
-        └─ … (future pages)
+├─ src/
+│   ├─ App.tsx               # Root component & Route definitions
+│   ├─ main.tsx              # React entry point
+│   ├─ index.css             # Design system tokens & global styles
+│   ├─ lib/                  # Core logic & Shared resources
+│   │   ├─ api/              # Mock API Layer (Simulates backend)
+│   │   │   ├─ apiUtils.ts   # Mock response helpers
+│   │   │   ├─ auth.api.ts   # Authentication services
+│   │   │   └─ artisan.api.ts # Artisan feature services
+│   │   ├─ hooks/            # Custom Hooks & Zustand Stores
+│   │   │   ├─ useAuthStore.ts    # Global Auth state
+│   │   │   ├─ useArtisanStore.ts # Artisan dashboard state
+│   │   │   ├─ useAuth.ts         # Auth logic abstraction
+│   │   │   └─ useArtisan.ts      # Artisan logic abstraction
+│   │   ├─ components/       # UI Components
+│   │   │   ├─ common/       # Atomic components (Button, Input)
+│   │   │   └─ artisan/      # Artisan-specific UI modules
+│   │   └─ utils/            # Shared utilities & Mock data
+│   └─ pages/                # Page-level components (Routes)
+│       ├─ artisan/          # Artisan dashboard pages
+│       ├─ client/           # Client-specific pages
+│       └─ auth/             # Login & Signup pages
 ```
 
-## How to Use This Structure
-- **`src/lib/components/common`**: Place reusable UI pieces here. They are imported throughout the app.
-- **`src/lib/api`**: Centralize all network calls; keep them thin and focused.
-- **`src/pages`**: Each page corresponds to a route defined in `App.tsx` and typically renders inside `<Outlet />` of `BaseLayout`.
-- **`src/lib/components/common/modals`**: Contains modal components (`ModalNavbar`, `ModalDesktop`, `ModalMobile`) that can be invoked from any page.
-- **`public`**: Static files served as‑is (e.g., favicon, manifest).
+## Data Flow Pattern
 
-Feel free to extend this tree as new features are added. The hierarchical view helps you locate files quickly and maintain a clean separation between layout, UI components, API logic, and page routes.
+We follow a unidirectional data flow to ensure scalability and ease of debugging:
+
+1.  **UI Component**: Renders data and triggers actions via custom hooks.
+2.  **Custom Hook**: Orchestrates logic, connects to Zustand stores, and manages component-level effects.
+3.  **Zustand Store**: Maintains the "Source of Truth." It handles async side effects by calling the API layer.
+4.  **API Layer**: Isolated services that handle network requests. Currently implemented as a **Mock API** with simulated delays and error handling.
+
+## State Management Principles
+
+Each store typically tracks:
+- `data`: The primary resource (e.g., list of jobs).
+- `isLoading`: Boolean for global/section-specific loading states.
+- `error`: Null or string containing error messages for toast notifications.
+
+## Naming Conventions
+- **Components**: PascalCase (e.g., `RequestCard.tsx`)
+- **Hooks/Stores**: camelCase with `use` prefix (e.g., `useAuthStore.ts`)
+- **APIs**: camelCase with `.api.ts` suffix (e.g., `auth.api.ts`)
+- **Tokens**: Use CSS variables from `index.css` (e.g., `var(--primary)`)
