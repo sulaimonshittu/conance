@@ -35,8 +35,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         const baseStyles = 'inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:bg-gray-500 disabled:cursor-not-allowed active:scale-[0.98]';
 
         const variants: Record<ButtonVariant, string> = {
-            primary: 'bg-primary text-background hover:bg-primary/90 focus:ring-primary',
-            secondary: 'bg-secondary text-background hover:bg-secondary/90 focus:ring-secondary',
+            primary: 'bg-primary text-white hover:bg-primary/90 focus:ring-primary',
+            secondary: 'bg-primary2 text-white hover:bg-primary2/90 focus:ring-primary2',
             outline: 'border-2 border-primary text-primary hover:bg-primary/10 focus:ring-primary',
             ghost: 'text-primary hover:bg-primary/10 focus:ring-primary',
             danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
