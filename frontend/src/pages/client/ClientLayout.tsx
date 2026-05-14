@@ -1,8 +1,13 @@
+import { Outlet, Navigate } from "react-router-dom"
+import useAuthStore from "@/lib/hooks/useAuthStore"
 
+const ClientLayout = () => {
+    const isAuth = useAuthStore((state) => state.isAuth)
 
-import { Outlet } from "react-router-dom"
+    if (!isAuth) {
+        return <Navigate to="/" replace />
+    }
 
-const BaseLayout = () => {
     return (
         <div className="min-h-screen bg-slate-50 border border-accent">
             <main className="">
@@ -20,5 +25,5 @@ const BaseLayout = () => {
     )
 }
 
-export default BaseLayout
+export default ClientLayout
 

@@ -34,23 +34,37 @@
 
 
     --spacing-1: clamp(0.5rem, 0.25rem + 0.5vw, 1rem);
+
+
     /* Semantic Colors */
-    --color-success: #10b981;
-    --color-danger: #ef4444;
-    --color-warning: #f59e0b;
-    --color-info: #3b82f6;
+    --color-success: #12B76A;
+    --color-error: #E74C3C;
+    --color-warning: #F79009;
+    --color-disabled: #7A6F65;
+
+    --color-primary: #8C3118;
+    --color-primary2: #B84720;
+
+    --color-accent: #D9D9D9;
+    --color-button: #D9D9D9;
+    --color-highlight: #D9D9D9;
+    --color-text-muted: #545454;
+
 }
 
 @theme {
     /* Colors */
     --color-primary: var(--color-primary);
-    --color-secondary: var(--color-secondary);
-    --color-background: var(--color-background);
-    --color-text-color: var(--color-text);
+    --color-primary2: var(--color-primary2);
+    --color-accent: var(--color-accent);
+    --color-highlight: var(--color-highlight);
+    --color-button: var(--color-button);
+    --color-disabled: var(--color-disabled);
     --color-success: var(--color-success);
-    --color-danger: var(--color-danger);
+    --color-error: var(--color-error);
     --color-warning: var(--color-warning);
     --color-info: var(--color-info);
+    --color-text-muted: var(--color-text-muted);
 
     /* Fonts */
     --font-heading: var(--font-heading);
