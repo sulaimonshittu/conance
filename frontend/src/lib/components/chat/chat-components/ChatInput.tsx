@@ -8,15 +8,14 @@ interface ChatInputProps {
 
 const ChatInput = ({ jobId }: ChatInputProps) => {
     const [text, setText] = useState("")
-    const { sendMessage, isSending, context } = useChatStore()
+    const { sendMessage, context } = useChatStore()
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
     const isInputDisabled = !context || 
                             context.status === "terminated" || 
                             context.status === "rejected" || 
                             context.status === "completed" || 
-                            context.status === "archived" || 
-                            isSending
+                            context.status === "archived"
 
     // Auto-resize textarea
     useEffect(() => {

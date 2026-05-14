@@ -20,10 +20,11 @@ interface ChatState {
     terminateJob: (jobId: string, reason: string) => Promise<boolean>
     rejectJob: (jobId: string, reason: string) => Promise<boolean>
     reopenChat: (jobId: string) => Promise<boolean>
+    retryMessage: (jobId: string) => Promise<boolean>
     clearChat: () => void
 }
 
-const useChatStore = create<ChatState>((set) => ({
+const useChatStore = create<ChatState>((set, get) => ({
     messages: [],
     context: null,
     conversations: [],
@@ -73,20 +74,72 @@ const useChatStore = create<ChatState>((set) => ({
             return false
         }
 
-        set({ isSending: true })
-        
-        // Optimistic UI update could go here
-        
+        const tempId = `temp_${Date.now()}`
+        const optimisticMessage: ChatMessage = {
+            id: tempId,
+            senderId: role,
+            text,
+            timestamp: new Date(),
+            status: 'sending'
+        }
+
+        // 1. Optimistic Update
+        set(state => ({
+            messages: [...state.messages, optimisticMessage]
+        }))
+
+        // 2. API Call
         const res = await chatApi.sendMessage(jobId, text, role)
+        
         if (res.success && res.data) {
+            // 3. Success Update
             set(state => ({
-                messages: [...state.messages, res.data!],
-                isSending: false
+                messages: state.messages.map(m => 
+                    m.id === tempId ? { ...res.data!, id: res.data!.id } : m
+                )
             }))
             return true
         } else {
-            toast.error(res.message || "Failed to send message")
-            set({ isSending: false })
+            // 4. Failure Update
+            set(state => ({
+                messages: state.messages.map(m => 
+                    m.id === tempId ? { ...m, status: 'failed' } : m
+                )
+            }))
+            return false
+        }
+    },
+
+    retryMessage: async (jobId: string) => {
+        const { messages } = get()
+        const { role } = useAuthStore.getState()
+        const failedMsg = [...messages].reverse().find(m => m.status === 'failed' && m.senderId === role)
+        
+        if (!failedMsg || !role) return false
+
+        // 1. Reset status to sending
+        set(state => ({
+            messages: state.messages.map(m => 
+                m.id === failedMsg.id ? { ...m, status: 'sending' } : m
+            )
+        }))
+
+        // 2. Retry API call
+        const res = await chatApi.sendMessage(jobId, failedMsg.text, role)
+        
+        if (res.success && res.data) {
+            set(state => ({
+                messages: state.messages.map(m => 
+                    m.id === failedMsg.id ? { ...res.data!, id: res.data!.id } : m
+                )
+            }))
+            return true
+        } else {
+            set(state => ({
+                messages: state.messages.map(m => 
+                    m.id === failedMsg.id ? { ...m, status: 'failed' } : m
+                )
+            }))
             return false
         }
     },

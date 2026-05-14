@@ -5,7 +5,7 @@ export interface ChatMessage {
     senderId: string; // 'artisan' or 'client' for our mock
     text: string;
     timestamp: Date;
-    status: 'sent' | 'delivered' | 'read';
+    status: 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
 }
 
 export interface JobContext {
@@ -77,7 +77,13 @@ export const chatApi = {
 
     /** Send a new message */
     sendMessage: async (jobId: string, text: string, senderId: string) => {
-        await delay(800); // Simulate network latency
+        await delay(1200); // Simulate network latency
+        
+        // Simulate a 20% failure rate for testing retry
+        if (Math.random() < 0.2) {
+            return mockResponse(null, false, "Failed to send message. Please retry.");
+        }
+
         const newMessage: ChatMessage = {
             id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             senderId,
