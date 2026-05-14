@@ -1,0 +1,76 @@
+@import "tailwindcss";
+
+
+:root {
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* Typography: Headings (fs = font-size) */
+    /* Using consistent clamp scaling logic */
+    --fs-h1: clamp(1.4rem, 0.4114rem + 3.2472vw, 6.5rem);
+    --fs-h2: clamp(1.5rem, 0.8571rem + 2.7429vw, 5rem);
+    --fs-h3: clamp(1.25rem, 0.6286rem + 2.6514vw, 3.5rem);
+    --fs-h4: clamp(1.1rem, 0.5rem + 2vw, 2.5rem);
+    --fs-h5: clamp(1rem, 0.4rem + 1.5vw, 1.8rem);
+
+    /* Typography: Body */
+    --fs-b1: clamp(1.125rem, 0.9rem + 0.5vw, 1.3rem);
+    --fs-b2: clamp(1rem, 0.8rem + 0.5vw, 1.125rem);
+    --fs-b3: clamp(0.875rem, 0.7rem + 0.4vw, 1rem);
+    --fs-b4: clamp(0.4375rem, 0.4174rem + 0.1107vw, 0.625rem);
+    --fs-b5: clamp(0.875rem, 0.7rem + 0.4vw, 1rem);
+
+    /* Spacing (5 = largest, 1 = smallest) */
+    /* M1/P1 approx 4rem-8rem scaling */
+    --spacing-5: clamp(4rem, 2rem + 5vw, 8rem);
+    --spacing-4: clamp(2rem, 1rem + 3vw, 4rem);
+    --spacing-3: clamp(1.5rem, 0.75rem + 1.5vw, 2.5rem);
+    --spacing-2: clamp(0.5rem, 0.4rem + 0.5333vw, 1rem);
+
+
+    --spacing-1: clamp(0.5rem, 0.25rem + 0.5vw, 1rem);
+    /* Semantic Colors */
+    --color-success: #10b981;
+    --color-danger: #ef4444;
+    --color-warning: #f59e0b;
+    --color-info: #3b82f6;
+}
+
+@theme {
+    /* Colors */
+    --color-primary: var(--color-primary);
+    --color-secondary: var(--color-secondary);
+    --color-background: var(--color-background);
+    --color-text-color: var(--color-text);
+    --color-success: var(--color-success);
+    --color-danger: var(--color-danger);
+    --color-warning: var(--color-warning);
+    --color-info: var(--color-info);
+
+    /* Fonts */
+    --font-heading: var(--font-heading);
+    --font-body: var(--font-body);
+
+    /* Font Sizes */
+    --text-h1: var(--fs-h1);
+    --text-h2: var(--fs-h2);
+    --text-h3: var(--fs-h3);
+    --text-h4: var(--fs-h4);
+    --text-h5: var(--fs-h5);
+
+    --text-b1: var(--fs-b1);
+    --text-b2: var(--fs-b2);
+    --text-b3: var(--fs-b3);
+    --text-b4: var(--fs-b4);
+    /* Spacing - Mapping to custom utilities if needed or extending spacing */
+    --spacing-s1: var(--spacing-1);
+    --spacing-s2: var(--spacing-2);
+    --spacing-s3: var(--spacing-3);
+    --spacing-s4: var(--spacing-4);
+    --spacing-s5: var(--spacing-5);
+}
