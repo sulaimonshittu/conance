@@ -16,6 +16,7 @@ import Work from '@/pages/artisan/jobs/Work'
 import RequestJob from '@/pages/artisan/jobs/RequestJob'
 import OngoingJobDetails from '@/pages/artisan/jobs/OngoingJobDetails'
 import CompletedJobDetails from '@/pages/artisan/jobs/CompletedJobDetails'
+import ArtisanProfile from '@/pages/artisan/profile/Profile'
 
 //Client Imports
 import ClientHome from '@/pages/client/ClientHome'
@@ -27,6 +28,7 @@ import SearchForArtisan from "@/pages/client/find-service/SearchForArtisan";
 import JobsGiven from "@/pages/client/jobs/JobsGiven";
 import Wallet from "@/pages/client/wallet/Wallet";
 import JobDetails from "@/pages/client/jobs/JobDetails";
+import ClientProfile from "@/pages/client/profile/Profile";
 
 
 import {
@@ -64,6 +66,7 @@ function App() {
             <Route path="request-job/:id" element={<RequestJob />} />
             <Route path="ongoing-job/:id" element={<OngoingJobDetails />} />
             <Route path="completed-job/:id" element={<CompletedJobDetails />} />
+            <Route path="profile" element={<ArtisanProfile />} />
           </Route>
           {/* client routes*/}
           <Route path="/client" element={<ClientLayout />} >
@@ -75,6 +78,7 @@ function App() {
             <Route path="jobs" element={<JobsGiven />} />
             <Route path="wallet" element={<Wallet />} />
             <Route path="job-details/:id" element={<JobDetails />} />
+            <Route path="profile" element={<ClientProfile />} />
           </Route>
           {/* 404 page not found*/}
           <Route path="*" element={<PageNotFound />} />

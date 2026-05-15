@@ -1,9 +1,9 @@
 
 
 import { Outlet, Navigate } from "react-router-dom"
-import useAuthStore from "@/lib/hooks/useAuthStore"
+import useAuthStore from "@lib/hooks/useAuthStore"
 import ArtisanFooter from "@/lib/components/artisan/ArtisanFooter"
-import ArtisanNavBar from "@/lib/components/artisan/ArtisanNavBar"
+import ClientArtisanNavbar from "@lib/components/ClientArtisanNavbar"
 
 const ArtisanLayout = () => {
     const isAuth = useAuthStore((state) => state.isAuth)
@@ -14,7 +14,7 @@ const ArtisanLayout = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 border border-accent">
-            <ArtisanNavBar />
+            <ClientArtisanNavbar />
             <main className="py-s5 px-s2 bg-primary2/10">
                 <div className="">
                     <Outlet />

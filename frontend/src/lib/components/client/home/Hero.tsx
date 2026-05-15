@@ -8,7 +8,7 @@ const Hero = () => {
             {/* Title & Subtitle */}
             <div className="flex flex-col gap-2">
                 <h1 className="text-h2 font-bold text-gray-900 leading-tight tracking-tight">
-                    Find trusted <br /> artisans across <br /> Lagos
+                    Find trusted  artisans <br /> across  Lagos
                 </h1>
                 <p className="text-b3 text-text-muted font-medium">
                     Verified work. Squad-secured escrow. <br />

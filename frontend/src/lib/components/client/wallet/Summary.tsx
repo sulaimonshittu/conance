@@ -49,7 +49,7 @@ const Summary: React.FC<SummaryProps> = ({ escrow, released, balance, accountDet
             {SUMMARY_CARDS.map((card, index) => {
                 const Icon = card.icon
                 return (
-                    <div 
+                    <div
                         key={index}
                         className="bg-white p-s3 rounded-[2rem] border border-accent/10 shadow-sm flex flex-col gap-4"
                     >
@@ -72,7 +72,7 @@ const Summary: React.FC<SummaryProps> = ({ escrow, released, balance, accountDet
                         </div>
 
                         {card.canFund && (
-                            <button 
+                            <button
                                 onClick={() => setIsFunding(true)}
                                 className="mt-2 w-full bg-primary text-white py-3.5 rounded-2xl font-bold hover:bg-primary2 transition-all active:scale-95 shadow-lg shadow-primary/20"
                             >
@@ -84,7 +84,7 @@ const Summary: React.FC<SummaryProps> = ({ escrow, released, balance, accountDet
             })}
 
             {isFunding && (
-                <ModalMobile 
+                <ModalMobile
                     onClose={() => setIsFunding(false)}
                     Content={() => <FundWalletForm accountDetails={accountDetails} />}
                 />
@@ -103,7 +103,7 @@ const FundWalletForm = ({ accountDetails }: { accountDetails: SummaryProps['acco
     }
 
     return (
-        <div className="p-s3 space-y-6">
+        <div className="p-s3 space-y-6 bg-white h-[70vh] rounded-t-3xl">
             <div className="text-center">
                 <h3 className="text-h4 font-bold text-gray-900">Fund Your Wallet</h3>
                 <p className="text-b3 text-text-muted mt-1">
@@ -123,7 +123,7 @@ const FundWalletForm = ({ accountDetails }: { accountDetails: SummaryProps['acco
                         <span className="text-h4 font-bold text-primary tracking-widest">
                             {accountDetails.accountNumber}
                         </span>
-                        <button 
+                        <button
                             onClick={copyToClipboard}
                             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                         >
@@ -145,7 +145,7 @@ const FundWalletForm = ({ accountDetails }: { accountDetails: SummaryProps['acco
                 </p>
             </div>
 
-            <button 
+            <button
                 onClick={() => window.location.reload()}
                 className="w-full bg-gray-900 text-white py-4 rounded-2xl font-bold active:scale-95 transition-all"
             >

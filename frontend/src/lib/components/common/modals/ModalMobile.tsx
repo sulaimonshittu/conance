@@ -73,7 +73,7 @@ const ModalMobile = ({
 
             {/* Drawer */}
             <aside
-                className={`fixed z-[70] bg-background shadow-2xl overflow-hidden transition-transform duration-300 ease-out flex ${current.classes} ${current.transition} max-h-[60vh]`}
+                className={`fixed z-[70] bg-background shadow-2xl overflow-hidden transition-transform duration-300 ease-out flex ${current.classes} ${current.transition} max-h-[90vh] `}
             >
                 {/* Grab Handle */}
                 <div
@@ -83,7 +83,7 @@ const ModalMobile = ({
                     <div className={`${current.lineStyle} bg-text-color/20 rounded-full`} />
                 </div>
 
-                <div className="overflow-y-auto flex-1 h-full">
+                <div className="overflow-y-auto flex-1 h-full rounded-t-3xl">
                     <Content onClose={closeWithTransition} />
                 </div>
             </aside>

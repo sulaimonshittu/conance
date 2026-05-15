@@ -592,6 +592,20 @@ export const MOCK_TOP_ARTISANS: Artisan[] = [
     }
 ];
 
+export interface Proposal {
+    id: string;
+    artisanId: string;
+    artisanName: string;
+    artisanAvatar: string;
+    artisanTitle: string;
+    rating: number;
+    reviewCount: number;
+    price: string;
+    duration: string;
+    message: string;
+    submittedAt: string;
+}
+
 export interface ClientJob {
     id: string;
     title: string;
@@ -600,12 +614,69 @@ export interface ClientJob {
     totalPrice: string;
     releasedAmount: string;
     progress: number;
-    status: 'active' | 'completed' | 'cancelled';
+    status: 'open' | 'active' | 'completed' | 'cancelled';
     milestones: { name: string; completed: boolean }[];
     date: string;
+    // Only on open jobs
+    proposalCount?: number;
+    proposals?: Proposal[];
 }
 
 export const MOCK_CLIENT_JOBS: ClientJob[] = [
+    {
+        id: "job0",
+        title: "Bathroom Pipe Replacement",
+        artisanName: "",
+        artisanAvatar: "",
+        totalPrice: "0",
+        releasedAmount: "0",
+        progress: 0,
+        status: "open",
+        milestones: [],
+        date: "15 May 2024",
+        proposalCount: 4,
+        proposals: [
+            {
+                id: "prop1",
+                artisanId: "art3",
+                artisanName: "Ibrahim Musa",
+                artisanAvatar: "https://i.pravatar.cc/150?u=ibrahim",
+                artisanTitle: "Expert Plumber",
+                rating: 4.7,
+                reviewCount: 56,
+                price: "18,000",
+                duration: "1 day",
+                message: "Good afternoon! I have extensive experience in bathroom plumbing and pipe replacement. I completed 3 similar jobs last month in your area. I'll bring all tools and replace the pipe with quality materials.",
+                submittedAt: "2 hours ago"
+            },
+            {
+                id: "prop2",
+                artisanId: "art4",
+                artisanName: "Emeka Okafor",
+                artisanAvatar: "https://i.pravatar.cc/150?u=emeka",
+                artisanTitle: "Plumbing Specialist",
+                rating: 4.5,
+                reviewCount: 33,
+                price: "15,000",
+                duration: "Half day",
+                message: "Hi! I can handle this quickly. I carry all the necessary fittings in my van and can start tomorrow morning. My rate is competitive and I offer a 30-day warranty on all work.",
+                submittedAt: "5 hours ago"
+            },
+            {
+                id: "prop3",
+                artisanId: "art5",
+                artisanName: "Yemi Adebayo",
+                artisanAvatar: "https://i.pravatar.cc/150?u=yemi",
+                artisanTitle: "General Plumber",
+                rating: 4.2,
+                reviewCount: 18,
+                price: "12,000",
+                duration: "1–2 days",
+                message: "I'm available today. Can inspect first and give a more accurate quote. I've been doing plumbing for 7 years.",
+                submittedAt: "Yesterday"
+            }
+        ]
+    },
     {
         id: "job1",
         title: "Custom Oak Bookshelf",
