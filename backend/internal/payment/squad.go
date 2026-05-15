@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 )
 
 type SquadClient struct {
@@ -17,8 +18,8 @@ type SquadClient struct {
 
 func NewSquadClient() *SquadClient {
 	return &SquadClient{
-		secretKey: os.Getenv("SQUAD_SECRET_KEY"),
-		baseURL:   os.Getenv("SQUAD_BASE_URL"),
+		secretKey: strings.TrimSpace(os.Getenv("SQUAD_SECRET_KEY")),
+		baseURL:   strings.TrimSpace(os.Getenv("SQUAD_BASE_URL")),
 		httpClient: &http.Client{},
 	}
 }
@@ -130,13 +131,13 @@ func (c *SquadClient) AccountLookup(ctx context.Context, req AccountLookupReques
 }
 
 type TransferRequest struct {
-	Remark        string `json:"remark"`
-	BankCode      string `json:"bank_code"`
-	CurrencyID    string `json:"currency_id"`
-	Amount        string `json:"amount"` // string in docs usually, but kobo
-	Account       string `json:"account_number"`
+	Remark         string `json:"remark"`
+	BankCode       string `json:"bank_code"`
+	CurrencyID     string `json:"currency_id"`
+	Amount         string `json:"amount"` // Guide specifies String
+	Account        string `json:"account_number"`
 	TransactionRef string `json:"transaction_reference"`
-	AccountName   string `json:"account_name"`
+	AccountName    string `json:"account_name"`
 }
 
 type TransferResponse struct {
@@ -153,6 +154,7 @@ func (c *SquadClient) Transfer(ctx context.Context, req TransferRequest) (*Trans
 	url := fmt.Sprintf("%s/payout/transfer", c.baseURL)
 	
 	req.CurrencyID = "NGN"
+	// Ensure amount is in the payload as a string
 	body, err := json.Marshal(req)
 	if err != nil {
 		return nil, err
