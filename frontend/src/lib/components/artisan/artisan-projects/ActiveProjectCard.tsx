@@ -11,7 +11,7 @@ const ActiveProjectCard = ({ project }: ActiveProjectCardProps) => {
 
   return (
     <Link
-      to={`/jobs/${project.id}`}
+      to={`/artisan/ongoing-job/${project.id}`}
       className="block bg-white rounded-2xl p-s3 border border-accent hover:border-primary/30 transition-all hover:shadow-lg"
     >
       <div className="flex items-start justify-between mb-s3">
@@ -59,7 +59,7 @@ const ActiveProjectCard = ({ project }: ActiveProjectCardProps) => {
         {project.milestones.map((milestone) => (
           <div
             key={milestone.id}
-            className={`flex-1 h-1 rounded-full transition-colors duration-300 ${milestone.status === 'approved'
+            className={`flex-1 h-1 rounded-full transition-colors duration-300 ${milestone.status === 'approved' || milestone.status === 'released'
               ? 'bg-primary'
               : milestone.status === 'in-progress'
                 ? 'bg-primary2/40'

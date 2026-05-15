@@ -1,73 +1,79 @@
-# React + TypeScript + Vite
+# Conance - Artisan Service Marketplace
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Conance is a mobile-first marketplace platform designed to bridge the gap between clients and skilled local artisans (carpenters, plumbers, tailors, etc.). The platform leverages AI-assisted job posting and voice recording to simplify the process of finding and hiring the right professionals.
 
-Currently, two official plugins are available:
+## Core Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Role-Based Experience**: Tailored dashboards for both Artisans (Earnings, Requests, Portfolio) and Clients (Search, Job Posting, Wallet).
+- **AI-Powered Job Posting**: Clients can post jobs via voice or text; the system structures the requirements automatically.
+- **Real-Time Communication**: Integrated chat system with context-aware conversation history.
+- **Secure Payments**: Built-in wallet and earning management systems.
+- **Professional Portfolios**: Artisans can showcase their work, manage skills, and set pricing.
 
-## React Compiler
+## Application Flows
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Client Flow
+1. **Onboarding**: Select "Hire an Artisan" and sign up.
+2. **Discover**: Search for artisans by category or location.
+3. **Post a Job**: Use voice or text to describe the task.
+4. **Chat**: Message artisans to discuss details and negotiate.
+5. **Manage**: Track active jobs and manage payments through the Wallet.
 
-## Expanding the ESLint configuration
+### Artisan Flow
+1. **Onboarding**: Select "Find Work" and create a professional profile.
+2. **Setup**: Add skills, hourly rates, and portfolio images.
+3. **Requests**: Receive and respond to incoming job inquiries.
+4. **Work**: Manage active tasks and communicate with clients.
+5. **Earnings**: Track completed jobs and monitor financial growth.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Tech Stack
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Framework**: React 18 with Vite
+- **Styling**: Tailwind CSS v4 (using CSS variables & `@theme`)
+- **State Management**: Zustand (with Persistence)
+- **Routing**: React Router v6
+- **Icons**: Lucide React
+- **API Simulation**: Axios with a custom Mock API layer
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Getting Started
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Prerequisites
+- Node.js (v18 or higher)
+- npm or yarn
+
+### Installation
+```bash
+# Clone the repository
+git clone <repository-url>
+
+# Navigate to the frontend directory
+cd conance/frontend
+
+# Install dependencies
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Running the Project
+```bash
+# Start development server
+npm run dev
 ```
+The app will be available at `http://localhost:5173`.
+
+### Available Scripts
+- `npm run dev`: Starts the Vite development server.
+- `npm run build`: Generates the production build in the `dist/` folder.
+- `npm run preview`: Locally previews the production build.
+
+## Project Structure & Architecture
+
+For a deep dive into how the project is organized and how to extend features, please refer to:
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - Project structure, state management, and data flow.
+- [DESIGN.md](./DESIGN.md) - Design system tokens, typography, and UI patterns.
+
+## Contribution Guidelines
+
+- **Naming**: Use PascalCase for components and camelCase for hooks/functions.
+- **Modularity**: Keep components focused on a single responsibility. Place feature-specific components in `src/lib/components/[feature]`.
+- **State**: Use Zustand stores for global/shared state and keep UI state local where possible.
+- **Mocking**: When adding new features, extend the mock API in `src/lib/api` to simulate backend behavior.

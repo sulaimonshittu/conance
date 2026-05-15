@@ -24,7 +24,7 @@ const IncomingRequestsCard = ({ request }: IncomingRequestsCardProps) => {
         : request.totalAmount
 
     return (
-        <div className="p-4 bg-[#FFF3EE] rounded-2xl border border-accent shadow-sm transition-all hover:shadow-md">
+        <div className="p-4 bg-white rounded-2xl border border-accent shadow-sm transition-all hover:shadow-md">
             <div className="flex items-start justify-between mb-s3">
                 <div className="flex items-start gap-3">
                     <img
@@ -55,7 +55,7 @@ const IncomingRequestsCard = ({ request }: IncomingRequestsCardProps) => {
                     variant="primary"
                     className="flex-1"
                     leftIcon={<Sparkles size={16} />}
-                    onClick={() => navigate(`/artisan-propose/${request.id}`)}
+                    onClick={() => navigate(`/artisan/request-job/${request.id}`)}
                 >
                     Send Proposal
                 </Button>

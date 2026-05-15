@@ -1,26 +1,21 @@
-import Input from "@lib/components/common/Input"
-import Button from "@lib/components/common/Button"
+import Input from "@/lib/components/common/Input"
+import Button from "@/lib/components/common/Button"
 import { useForm } from "react-hook-form"
 import { Link, useNavigate } from "react-router-dom"
-import { useState } from "react"
 import { ArrowLeft } from "lucide-react"
-import useAuthStore from "@lib/hooks/useAuthStore"
+import { useAuth } from "@/lib/hooks/useAuth"
 
 const Login = () => {
     const { register, handleSubmit, formState: { errors } } = useForm()
-    const [isLoading, setIsLoading] = useState(false)
     const navigate = useNavigate()
-    const { role, loginAsArtisan, loginAsClient } = useAuthStore()
-    const onSubmit = (data: any) => {
-        setIsLoading(true)
-        setTimeout(() => {
-            console.log(data)
-            role === "artisan" ? loginAsArtisan({ password: data.password, email: data.email }) : loginAsClient({ password: data.password, email: data.email })
-            setIsLoading(false)
-            if (role === "artisan") navigate("/artisan")
-            else navigate("/client")
-        }, 2000)
+    const { role, login, isLoading } = useAuth()
+
+    const onSubmit = async (data: any) => {
+        if (role) {
+            await login(data.email, data.password, role)
+        }
     }
+
     return (
         <section className="min-h-screen px-s4 py-s5 flex flex-col gap-s3">
 
