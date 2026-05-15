@@ -24,6 +24,7 @@ export interface ArtisanProfile extends UserProfile {
     skills: string[];
     portfolio: PortfolioItem[];
     experience: string;
+    hourlyPrice?: string; // e.g. "5000"
 }
 
 export interface PortfolioItem {
@@ -52,6 +53,7 @@ const MOCK_ARTISAN_PROFILE: ArtisanProfile = {
     bio: "Passionate about creating custom furniture that lasts for generations.",
     skills: ["Carpentry", "Woodwork", "Finishing", "Roofing"],
     experience: "10+ years",
+    hourlyPrice: "5000",
     locations: [
         { id: "loc2", state: "Lagos", city: "Yaba", lga: "Mainland", address: "45 Herbert Macaulay Way", isPrimary: true }
     ],
@@ -60,6 +62,12 @@ const MOCK_ARTISAN_PROFILE: ArtisanProfile = {
         { id: "p2", title: "Modern Wardrobe", image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&q=80&w=300" }
     ]
 };
+
+const ALL_SKILLS = [
+    "Carpentry", "Plumbing", "Electrical", "Painting", "Masonry", 
+    "Tiling", "Roofing", "Welding", "Mechanic", "Tailoring",
+    "Hairdressing", "Catering", "Interior Design", "Woodwork", "Finishing"
+];
 
 export const profileApi = {
     getProfile: async (role: "client" | "artisan") => {
@@ -91,5 +99,10 @@ export const profileApi = {
     deletePortfolio: async (id: string) => {
         await delay(800);
         return mockResponse(id, true, "Portfolio item deleted");
+    },
+
+    getAvailableSkills: async () => {
+        await delay(500);
+        return mockResponse(ALL_SKILLS);
     }
 };

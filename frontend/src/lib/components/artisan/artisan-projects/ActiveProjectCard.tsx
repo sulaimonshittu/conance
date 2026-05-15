@@ -59,7 +59,7 @@ const ActiveProjectCard = ({ project }: ActiveProjectCardProps) => {
         {project.milestones.map((milestone) => (
           <div
             key={milestone.id}
-            className={`flex-1 h-1 rounded-full transition-colors duration-300 ${milestone.status === 'approved'
+            className={`flex-1 h-1 rounded-full transition-colors duration-300 ${milestone.status === 'approved' || milestone.status === 'released'
               ? 'bg-primary'
               : milestone.status === 'in-progress'
                 ? 'bg-primary2/40'

@@ -25,36 +25,34 @@ const JobsGiven = () => {
     const filteredJobs = MOCK_CLIENT_JOBS.filter(job => job.status === activeTab)
     const empty = EMPTY_MESSAGES[activeTab]
 
-    // Count open jobs for badge
-    const openCount = MOCK_CLIENT_JOBS.filter(j => j.status === 'open').length
 
     return (
         <div className="flex flex-col min-h-screen bg-[#FCF9F6] pb-24">
             {/* Header */}
-            <header className="px-s3 pt-s4 pb-s3">
+            <header className="px-s1 pt-s4 pb-s3">
                 <h1 className="text-h3 font-bold text-gray-900 mb-6">Your Jobs</h1>
 
-                {/* Tabs — horizontal scroll for 4 tabs */}
-                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                    {TABS.map(({ id, label }) => (
-                        <button
-                            key={id}
-                            onClick={() => setActiveTab(id)}
-                            className={`relative flex-shrink-0 px-5 py-3 rounded-2xl text-sm font-bold capitalize transition-all duration-300 ${activeTab === id
-                                    ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                                    : 'bg-white text-text-muted border border-accent/20 hover:text-gray-900'
-                                }`}
-                        >
-                            {label}
-                            {/* Badge for open count */}
-                            {id === 'open' && openCount > 0 && (
-                                <span className={`absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center border-2 border-white ${activeTab === 'open' ? 'bg-white text-primary' : 'bg-primary text-white'
-                                    }`}>
-                                    {openCount}
-                                </span>
-                            )}
-                        </button>
-                    ))}
+                {/* Tabs — Capsule Design */}
+                <div className="flex bg-primary/10 p-s1 overflow-x-scroll rounded-[20px] w-full">
+                    {TABS.map(({ id, label }) => {
+                        const count = MOCK_CLIENT_JOBS.filter(j => j.status === id).length;
+                        // Map labels to match image-style naming
+                        const displayLabel = id === 'active' ? 'Scheduled' : id === 'cancelled' ? 'Failed' : label;
+
+                        return (
+                            <button
+                                key={id}
+                                onClick={() => setActiveTab(id)}
+                                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-[16px] text-[13px] font-bold transition-all duration-300 ${activeTab === id
+                                    ? 'bg-primary2 text-white shadow-sm'
+                                    : 'text-text-muted hover:text-gray-900'
+                                    }`}
+                            >
+                                <span className="capitalize">{displayLabel}</span>
+                                <span className="opacity-80">({count})</span>
+                            </button>
+                        );
+                    })}
                 </div>
             </header>
 

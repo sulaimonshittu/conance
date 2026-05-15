@@ -7,6 +7,7 @@ import ProfileTabs, { type ProfileTabId } from "./ProfileTabs"
 import ProfileForm from "./ProfileForm"
 import ProfileLocationSelector from "./ProfileLocationSelector"
 import ProfilePortfolio from "./ProfilePortfolio"
+import ProfileSkillsSelector from "./ProfileSkillsSelector"
 import EarningsSummary from "../artisan/artisan-earning/EarningsSummary"
 import WalletSummary from "../client/wallet/Summary"
 
@@ -19,7 +20,10 @@ const RoleBasedProfileLayout = ({ role }: RoleBasedProfileLayoutProps) => {
         profile, 
         isLoading, 
         fetchProfile, 
+        fetchAvailableSkills,
+        availableSkills,
         updateProfile, 
+        updateSkills,
         updateLocations, 
         addPortfolio, 
         removePortfolio,
@@ -33,7 +37,10 @@ const RoleBasedProfileLayout = ({ role }: RoleBasedProfileLayoutProps) => {
     useEffect(() => {
         fetchProfile(role)
         fetchSummary()
-    }, [role, fetchProfile, fetchSummary])
+        if (role === "artisan") {
+            fetchAvailableSkills()
+        }
+    }, [role, fetchProfile, fetchSummary, fetchAvailableSkills])
 
     if (isLoading && !profile) {
         return (
@@ -86,7 +93,8 @@ const RoleBasedProfileLayout = ({ role }: RoleBasedProfileLayoutProps) => {
                             name: profile.name, 
                             email: profile.email,
                             bio: "bio" in profile ? profile.bio : "",
-                            title: "title" in profile ? profile.title : ""
+                            title: "title" in profile ? profile.title : "",
+                            hourlyPrice: "hourlyPrice" in profile ? profile.hourlyPrice : ""
                         }} 
                         isUpdating={isUpdating}
                         onSave={updateProfile}
@@ -96,18 +104,15 @@ const RoleBasedProfileLayout = ({ role }: RoleBasedProfileLayoutProps) => {
 
                 {activeTab === "professional" && role === "artisan" && (
                     <div className="space-y-6">
-                        <div className="bg-white p-s3 rounded-3xl border border-accent/10 shadow-sm space-y-6">
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Professional Skills</label>
-                                <div className="flex flex-wrap gap-2">
-                                    {("skills" in profile ? profile.skills : []).map(skill => (
-                                        <span key={skill} className="px-4 py-2 bg-slate-50 border border-accent rounded-xl text-b3 font-bold text-gray-700 hover:bg-primary/5 hover:border-primary/30 transition-colors cursor-default">
-                                            {skill}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="pt-4 border-t border-accent/50 space-y-2">
+                        <div className="bg-white p-s3 rounded-3xl border border-accent/10 shadow-sm space-y-8">
+                            <ProfileSkillsSelector 
+                                currentSkills={"skills" in profile ? profile.skills : []}
+                                availableSkills={availableSkills}
+                                onUpdate={updateSkills}
+                                isUpdating={isUpdating}
+                            />
+                            
+                            <div className="pt-4 border-t border-accent/50 space-y-3">
                                 <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Experience Level</label>
                                 <p className="text-b2 font-bold text-gray-900">{"experience" in profile ? profile.experience : "Not set"}</p>
                             </div>

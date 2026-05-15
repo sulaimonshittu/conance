@@ -12,7 +12,7 @@ const Chat = () => {
     const [searchParams] = useSearchParams()
     const navigate = useNavigate()
     const jobId = searchParams.get("jobId") || "proj1" // Fallback to mock ID for testing
-    
+
     const { fetchChatData, isLoading, error, context, clearChat } = useChatStore()
     const { role } = useAuthStore()
 
@@ -40,7 +40,7 @@ const Chat = () => {
                 <p className="text-b2 text-text-muted mb-s4 max-w-sm">
                     {error || "Could not retrieve the conversation history. Please try again."}
                 </p>
-                <button 
+                <button
                     onClick={() => navigate(-1)}
                     className="flex items-center gap-2 px-s4 py-3 bg-gray-900 text-white rounded-full font-bold hover:bg-gray-800 transition-colors"
                 >
@@ -62,7 +62,7 @@ const Chat = () => {
                 <p className="text-b2 text-text-muted mb-s4 max-w-sm">
                     You can only communicate with the client after the proposal has been accepted.
                 </p>
-                <button 
+                <button
                     onClick={() => navigate(-1)}
                     className="flex items-center gap-2 px-s4 py-3 bg-gray-900 text-white rounded-full font-bold hover:bg-gray-800 transition-colors"
                 >
@@ -73,7 +73,7 @@ const Chat = () => {
     }
 
     return (
-        <div className="flex flex-col h-screen max-w-[500px] mx-auto bg-white relative overflow-hidden">
+        <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[500px] h-full z-60 flex flex-col bg-white overflow-hidden">
             <ChatHeader />
             <ChatDisclaimer />
             <ChatMessages />

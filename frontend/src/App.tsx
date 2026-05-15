@@ -5,7 +5,7 @@ import BaseLayout from '@/pages/BaseLayout'
 import PageNotFound from '@/pages/PageNotFound'
 
 import ChatList from '@lib/components/chat/ChatList'
-//import Chat from "@lib/components/chat/Chat"
+import Chat from "@lib/components/chat/Chat"
 
 //Artisan Imports
 import ArtisanHome from '@/pages/artisan/ArtisanHome'
@@ -42,7 +42,7 @@ import { Toaster } from "sonner";
 function App() {
 
   return (
-    <section className='max-w-[500px] min-w-[280px] w-full mx-auto'>
+    <section className='max-w-[500px] min-w-[280px] w-full mx-auto font-body'>
       <Toaster richColors closeButton position="top-right" />
       <Router>
         <ScrollToTop />
@@ -82,6 +82,8 @@ function App() {
           </Route>
           {/* 404 page not found*/}
           <Route path="*" element={<PageNotFound />} />
+          <Route path="/client/chat?jobId=:id" element={<Chat />} />
+          <Route path="/artisan/chat?jobId=:id" element={<Chat />} />
         </Routes>
       </Router>
     </section>

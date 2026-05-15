@@ -7,9 +7,12 @@ interface ProfileState {
     isLoading: boolean;
     isUpdating: boolean;
     error: string | null;
+    availableSkills: string[];
 
     fetchProfile: (role: "client" | "artisan") => Promise<void>;
+    fetchAvailableSkills: () => Promise<void>;
     updateProfile: (data: Partial<ArtisanProfile>) => Promise<boolean>;
+    updateSkills: (skills: string[]) => Promise<boolean>;
     changePassword: (oldP: string, newP: string) => Promise<boolean>;
     updateLocations: (locations: ProfileLocation[]) => Promise<boolean>;
     addPortfolio: (item: Omit<PortfolioItem, "id">) => Promise<boolean>;
@@ -22,6 +25,7 @@ const useProfileStore = create<ProfileState>((set) => ({
     isLoading: false,
     isUpdating: false,
     error: null,
+    availableSkills: [],
 
     clearError: () => set({ error: null }),
 
@@ -36,6 +40,17 @@ const useProfileStore = create<ProfileState>((set) => ({
             }
         } catch (err) {
             set({ error: "An unexpected error occurred", isLoading: false });
+        }
+    },
+
+    fetchAvailableSkills: async () => {
+        try {
+            const res = await profileApi.getAvailableSkills();
+            if (res.success && res.data) {
+                set({ availableSkills: res.data });
+            }
+        } catch (err) {
+            console.error("Failed to fetch available skills", err);
         }
     },
 
@@ -58,6 +73,23 @@ const useProfileStore = create<ProfileState>((set) => ({
             set({ error: "An unexpected error occurred", isUpdating: false });
             return false;
         }
+    },
+
+    updateSkills: async (skills) => {
+        set({ isUpdating: true });
+        const res = await profileApi.updateProfile({ skills });
+        if (res.success) {
+            set(state => ({
+                profile: state.profile && "skills" in state.profile 
+                    ? { ...state.profile, skills } 
+                    : state.profile,
+                isUpdating: false
+            }));
+            toast.success("Skills updated");
+            return true;
+        }
+        set({ isUpdating: false });
+        return false;
     },
 
     changePassword: async (oldP, newP) => {

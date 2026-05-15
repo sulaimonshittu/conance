@@ -18,21 +18,23 @@ const ClientHome = () => {
     return (
         <div className="flex flex-col min-h-screen bg-white pb-24">
             <Hero />
-            
+
             {/* Search for artisan */}
-            <div className="px-s3 py-2 -mt-4 relative z-10">
-                <form onSubmit={handleSearch} className="relative">
-                    <input 
-                        type="text" 
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search for artisans (e.g. Carpenter, Painter)"
-                        className="w-full bg-white border border-accent rounded-2xl px-12 py-4 shadow-xl shadow-black/5 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-b2 font-medium"
-                    />
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={20} />
-                    <button 
+            <div className="px-s3 ">
+                <form onSubmit={handleSearch} className="flex gap-s2">
+                    <div className="relative">
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="Search for artisans (e.g. Carpenter, Painter)"
+                            className="w-full bg-white border border-accent rounded-2xl px-12 py-s2 shadow-xl shadow-black/5 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all text-b2 font-medium"
+                        />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" size={20} />
+                    </div>
+                    <button
                         type="submit"
-                        className="absolute right-3 top-1/2 -translate-y-1/2 bg-primary text-white px-5 py-2 rounded-xl text-sm font-bold hover:bg-primary2 transition-colors active:scale-95"
+                        className="bg-primary text-white px-5 py-s1 rounded-xl text-sm font-bold hover:bg-primary2 transition-colors active:scale-95"
                     >
                         Search
                     </button>

@@ -25,8 +25,8 @@ const ArtisanFooter = () => {
                             {({ isActive }) => (
                                 <div
                                     className={`flex flex-col items-center justify-center gap-1 transition-colors ${isActive
-                                            ? "text-primary font-medium"
-                                            : "text-text-muted font-normal hover:text-gray-900"
+                                        ? "text-primary font-medium"
+                                        : "text-text-muted font-normal hover:text-gray-900"
                                         }`}
                                 >
                                     <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />

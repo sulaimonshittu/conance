@@ -2,7 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { type ClientJob } from '@/lib/utils/mockData'
 
-interface JobCardProps extends ClientJob {}
+interface JobCardProps extends ClientJob { }
 
 const JobCard: React.FC<JobCardProps> = ({
     id,
@@ -16,15 +16,15 @@ const JobCard: React.FC<JobCardProps> = ({
     const navigate = useNavigate()
 
     return (
-        <div 
+        <div
             onClick={() => navigate(`/client/job-details/${id}`)}
             className="bg-white p-s3 rounded-[2.5rem] shadow-sm border border-accent/10 flex flex-col gap-6 cursor-pointer hover:shadow-md transition-shadow active:scale-[0.99]"
         >
             <div className="flex justify-between items-start">
                 <div className="flex gap-4">
-                    <img 
-                        src={artisanAvatar} 
-                        alt={artisanName} 
+                    <img
+                        src={artisanAvatar}
+                        alt={artisanName}
                         className="w-16 h-16 rounded-full object-cover shadow-sm"
                     />
                     <div className="flex flex-col gap-1 max-w-[140px]">
@@ -53,11 +53,11 @@ const JobCard: React.FC<JobCardProps> = ({
                     <span className="text-b3 text-text-muted font-bold">Progress</span>
                     <span className="text-b2 font-bold text-gray-900">{progress}%</span>
                 </div>
-                
+
                 {/* Main Progress Bar */}
                 <div className="h-2.5 w-full bg-[#FAF7F2] rounded-full overflow-hidden">
-                    <div 
-                        className="h-full bg-primary transition-all duration-1000 ease-out" 
+                    <div
+                        className="h-full bg-primary transition-all duration-1000 ease-out"
                         style={{ width: `${progress}%` }}
                     />
                 </div>
@@ -65,7 +65,7 @@ const JobCard: React.FC<JobCardProps> = ({
                 {/* Milestone Indicators (Visual only as per design) */}
                 <div className="flex gap-2 mt-1">
                     <div className={`h-2 flex-1 rounded-full ${progress >= 33 ? 'bg-primary' : 'bg-gray-200'}`} />
-                    <div className={`h-2 flex-1 rounded-full ${progress >= 66 ? 'bg-primary' : 'bg-[#5B7568]'}`} />
+                    <div className={`h-2 flex-1 rounded-full ${progress >= 66 ? 'bg-primary' : 'bg-gray-200'}`} />
                     <div className={`h-2 flex-1 rounded-full ${progress >= 100 ? 'bg-primary' : 'bg-gray-200'}`} />
                 </div>
             </div>

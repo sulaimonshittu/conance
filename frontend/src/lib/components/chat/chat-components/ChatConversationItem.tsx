@@ -13,9 +13,9 @@ const ChatConversationItem = ({ conversation }: ChatConversationItemProps) => {
         switch (status) {
             case 'in-progress': return 'text-blue-600 bg-blue-50 border-blue-100'
             case 'completed': return 'text-gray-600 bg-gray-100 border-gray-200'
-            case 'terminated': 
+            case 'terminated':
             case 'rejected': return 'text-red-600 bg-red-50 border-red-100'
-            case 'accepted': 
+            case 'accepted':
             case 'reopened': return 'text-emerald-600 bg-emerald-50 border-emerald-100'
             default: return 'text-yellow-600 bg-yellow-50 border-yellow-100'
         }
@@ -24,15 +24,15 @@ const ChatConversationItem = ({ conversation }: ChatConversationItemProps) => {
     const isReadOnly = conversation.status === 'completed' || conversation.status === 'terminated' || conversation.status === 'archived'
 
     return (
-        <button 
+        <button
             onClick={() => navigate(`?jobId=${conversation.id}`)}
             className="w-full text-left p-s3 border-b border-accent/20 hover:bg-[#FAF7F2] transition-colors flex items-center justify-between group active:bg-[#F1E9DA]"
         >
             <div className="flex items-center gap-s3 flex-1 min-w-0">
                 <div className="relative shrink-0">
-                    <img 
-                        src={conversation.partnerAvatar} 
-                        alt={conversation.partnerName} 
+                    <img
+                        src={conversation.partnerAvatar}
+                        alt={conversation.partnerName}
                         className={`w-12 h-12 rounded-full object-cover border border-accent/30 ${isReadOnly ? 'grayscale opacity-70' : ''}`}
                     />
                     {/* Active/Status indicator */}
@@ -40,7 +40,7 @@ const ChatConversationItem = ({ conversation }: ChatConversationItemProps) => {
                         <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full"></div>
                     )}
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start mb-1">
                         <h3 className="text-b2 font-bold text-gray-900 truncate pr-2 group-hover:text-[#0D3D34] transition-colors">
@@ -51,7 +51,7 @@ const ChatConversationItem = ({ conversation }: ChatConversationItemProps) => {
                             2m ago
                         </span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between gap-2">
                         <p className="text-b3 text-text-muted truncate">
                             {isReadOnly ? (
@@ -62,7 +62,7 @@ const ChatConversationItem = ({ conversation }: ChatConversationItemProps) => {
                                 "Tap to view conversation..."
                             )}
                         </p>
-                        
+
                         <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border shrink-0 ${getStatusColor(conversation.status)}`}>
                             {conversation.status}
                         </span>

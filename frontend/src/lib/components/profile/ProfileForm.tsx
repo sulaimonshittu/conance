@@ -7,6 +7,7 @@ interface ProfileFormProps {
         email: string
         bio?: string
         title?: string
+        hourlyPrice?: string
     }
     isUpdating?: boolean
     onSave: (data: any) => void
@@ -54,6 +55,19 @@ const ProfileForm = ({ initialData, isUpdating, onSave, isArtisan }: ProfileForm
                             placeholder="e.g. Master Carpenter"
                             className="w-full bg-slate-50 border border-accent p-3 rounded-2xl text-b3 font-medium outline-none focus:border-primary transition-colors"
                         />
+                    </div>
+                    <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Hourly Price (₦)</label>
+                        <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-b3 font-bold text-gray-500">₦</span>
+                            <input
+                                type="text"
+                                value={formData.hourlyPrice || ""}
+                                onChange={e => setFormData({ ...formData, hourlyPrice: e.target.value.replace(/\D/g, '') })}
+                                placeholder="e.g. 5000"
+                                className="w-full bg-slate-50 border border-accent pl-9 pr-4 py-3 rounded-2xl text-b3 font-bold outline-none focus:border-primary transition-colors text-gray-900"
+                            />
+                        </div>
                     </div>
                     <div className="space-y-1">
                         <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider">About / Bio</label>

@@ -13,9 +13,9 @@ const ArtisanLayout = () => {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 border border-accent">
+        <div className="min-h-screen border border-accent">
             <ClientArtisanNavbar />
-            <main className="py-s5 px-s2 bg-primary2/10">
+            <main className="py-s bg-primary2/10 px-s2">
                 <div className="">
                     <Outlet />
                 </div>

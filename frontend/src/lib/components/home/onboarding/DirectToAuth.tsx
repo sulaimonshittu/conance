@@ -1,7 +1,7 @@
 import Button from "../../common/Button"
 import onBoarding from "../../../../assets/onboardingImage.png"
 import { useNavigate } from "react-router-dom"
-import useAuthStore from "../../../hooks/useAuthStore"
+import useAuthStore from "@lib/hooks/useAuthStore"
 
 const DirectToAuth = () => {
     const navigate = useNavigate()
@@ -18,17 +18,17 @@ const DirectToAuth = () => {
         navigate("/login")
     }
     return (
-        <section className="bg-[#FFF3EE] w-full min-h-screen  flex flex-col items-center justify-center gap-s5 ">
+        <section className="bg-[#FFF3EE] w-full min-h-screen flex flex-col items-center justify-center gap-s5 font-body">
             <div className="flex w-full pt-s3 pb-s5 px-10 text-primary justify-center">
-                <h4 className="text-2xl font-bold">Conance</h4>
+                <h4 className="text-2xl font-bold font-heading">Conance</h4>
             </div>
-            <div className="w-full">
+            <div className="w-full flex justify-center">
                 <img src={onBoarding} alt="on boardidng image" />
             </div>
-            <div className="flex flex-col items-center text-b1 font-bold">
-                <p>Trusted Jobs</p>
-                <p>Secure Payments</p>
-                <p className="text-b3 text-[#757575] font-normal">Nigeria’s financial trust layer for artisans and clients.</p>
+            <div className="flex flex-col items-center text-b1 font-bold font-heading">
+                <p className="font-heading">Trusted Jobs</p>
+                <p className="font-heading">Secure Payments</p>
+                <p className="text-b3 text-[#757575] font-normal font-body">Nigeria’s financial trust layer for artisans and clients.</p>
             </div>
 
 

@@ -5,7 +5,7 @@ import IncomingRequests from "@lib/components/artisan/artisan-home/incoming-requ
 const ArtisanHome = () => {
 
     return (
-        <section>
+        <section className="pt-s4 pb-s5">
             <WelcomeArtisan />
             <IncomingRequests />
             <ActiveWork />
