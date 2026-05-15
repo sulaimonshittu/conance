@@ -5,7 +5,7 @@ import ChatBubble from "./ChatBubble"
 
 const ChatMessages = () => {
     const { messages, isSending } = useChatStore()
-    const { role } = useAuthStore()
+    const { user } = useAuthStore()
     const scrollRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -38,7 +38,7 @@ const ChatMessages = () => {
                 <ChatBubble 
                     key={msg.id} 
                     message={msg} 
-                    isSender={msg.senderId === role} 
+                    isSender={msg.senderId === user?.id} 
                 />
             ))}
         </div>

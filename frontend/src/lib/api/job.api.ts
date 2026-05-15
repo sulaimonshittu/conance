@@ -109,6 +109,14 @@ export const jobApi = {
      */
     transcribeVoice: async (_audioBlob: Blob) => {
         await delay(2500); // Simulate STT processing time
+        
+        const possibleTranscriptions = [
+            "I need a custom wooden bookshelf for my living room. It should be about 6 feet tall with 5 shelves. I want it made of good quality hardwood and polished nicely.",
+            "I'm looking for a plumber to fix a leaking pipe in my kitchen. It's been dripping for two days and starting to pool under the sink. Need someone who can come today.",
+            "Can someone help me paint my three-bedroom apartment? I have the paint already, just need a professional to do the walls and ceilings carefully.",
+            "I need an electrician to install some new outdoor lighting and check the circuit breaker. Some of the switches in the hallway are flickering."
+        ];
+
         // Simulate rare failure (10%)
         if (Math.random() < 0.1) {
             return mockResponse(
@@ -118,8 +126,11 @@ export const jobApi = {
                 0
             );
         }
+
+        const randomText = possibleTranscriptions[Math.floor(Math.random() * possibleTranscriptions.length)];
+        
         return mockResponse(
-            "I need a custom wooden bookshelf for my living room. It should be about 6 feet tall with 5 shelves. I want it made of good quality hardwood and polished nicely.",
+            randomText,
             true,
             "Transcription successful",
             0

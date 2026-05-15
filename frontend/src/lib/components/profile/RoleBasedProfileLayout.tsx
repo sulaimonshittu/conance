@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { Loader2, AlertCircle, Shield } from "lucide-react"
 import useProfileStore from "../../hooks/useProfileStore"
+import useAuthStore from "../../hooks/useAuthStore"
 import useWalletStore from "../../hooks/useWalletStore"
 import ProfileHeader from "./ProfileHeader"
 import ProfileTabs, { type ProfileTabId } from "./ProfileTabs"
@@ -16,6 +17,7 @@ interface RoleBasedProfileLayoutProps {
 }
 
 const RoleBasedProfileLayout = ({ role }: RoleBasedProfileLayoutProps) => {
+    const { user } = useAuthStore()
     const { 
         profile, 
         isLoading, 
@@ -42,7 +44,10 @@ const RoleBasedProfileLayout = ({ role }: RoleBasedProfileLayoutProps) => {
         }
     }, [role, fetchProfile, fetchSummary, fetchAvailableSkills])
 
-    if (isLoading && !profile) {
+    // Use user from auth store as primary, fallback to profile store
+    const displayUser = user || profile
+
+    if (isLoading && !displayUser) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
                 <Loader2 size={32} className="text-primary animate-spin" />
@@ -69,15 +74,15 @@ const RoleBasedProfileLayout = ({ role }: RoleBasedProfileLayoutProps) => {
         )
     }
 
-    if (!profile) return null
+    if (!displayUser) return null
 
     return (
         <div className="max-w-2xl mx-auto space-y-s3 px-s3 py-s4 pb-24">
             <ProfileHeader 
-                name={profile.name} 
+                name={displayUser.name} 
                 role={role} 
-                title={"title" in profile ? profile.title : undefined}
-                avatar={profile.avatar}
+                title={"title" in displayUser ? displayUser.title : undefined}
+                avatar={displayUser.avatar}
             />
 
             <ProfileTabs 
@@ -90,14 +95,20 @@ const RoleBasedProfileLayout = ({ role }: RoleBasedProfileLayoutProps) => {
                 {activeTab === "personal" && (
                     <ProfileForm 
                         initialData={{ 
-                            name: profile.name, 
-                            email: profile.email,
-                            bio: "bio" in profile ? profile.bio : "",
-                            title: "title" in profile ? profile.title : "",
-                            hourlyPrice: "hourlyPrice" in profile ? profile.hourlyPrice : ""
+                            name: displayUser.name, 
+                            email: displayUser.email,
+                            bio: "about" in displayUser ? (displayUser as any).about : ("bio" in displayUser ? (displayUser as any).bio : ""),
+                            title: "title" in displayUser ? displayUser.title : "",
+                            hourlyPrice: "hourlyPrice" in displayUser ? (displayUser as any).hourlyPrice : ""
                         }} 
                         isUpdating={isUpdating}
-                        onSave={updateProfile}
+                        onSave={async (data) => {
+                            const success = await updateProfile(data)
+                            if (success) {
+                                // Sync back to auth store
+                                useAuthStore.getState().updateProfile(data)
+                            }
+                        }}
                         isArtisan={role === "artisan"}
                     />
                 )}
@@ -106,7 +117,7 @@ const RoleBasedProfileLayout = ({ role }: RoleBasedProfileLayoutProps) => {
                     <div className="space-y-6">
                         <div className="bg-white p-s3 rounded-3xl border border-accent/10 shadow-sm space-y-8">
                             <ProfileSkillsSelector 
-                                currentSkills={"skills" in profile ? profile.skills : []}
+                                currentSkills={"skills" in displayUser ? (displayUser as any).skills : []}
                                 availableSkills={availableSkills}
                                 onUpdate={updateSkills}
                                 isUpdating={isUpdating}
@@ -114,7 +125,7 @@ const RoleBasedProfileLayout = ({ role }: RoleBasedProfileLayoutProps) => {
                             
                             <div className="pt-4 border-t border-accent/50 space-y-3">
                                 <label className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Experience Level</label>
-                                <p className="text-b2 font-bold text-gray-900">{"experience" in profile ? profile.experience : "Not set"}</p>
+                                <p className="text-b2 font-bold text-gray-900">{"experience" in displayUser ? (displayUser as any).experience : "Not set"}</p>
                             </div>
                         </div>
                     </div>
@@ -122,7 +133,7 @@ const RoleBasedProfileLayout = ({ role }: RoleBasedProfileLayoutProps) => {
 
                 {activeTab === "portfolio" && role === "artisan" && (
                     <ProfilePortfolio 
-                        items={"portfolio" in profile ? profile.portfolio : []} 
+                        items={"portfolio" in displayUser ? (displayUser as any).portfolio : []} 
                         onAdd={addPortfolio} 
                         onRemove={removePortfolio} 
                     />
@@ -131,7 +142,7 @@ const RoleBasedProfileLayout = ({ role }: RoleBasedProfileLayoutProps) => {
                 {activeTab === "locations" && (
                     <div className="space-y-2">
                         <ProfileLocationSelector 
-                            locations={profile.locations} 
+                            locations={(displayUser as any).locations || []} 
                             onChange={updateLocations} 
                         />
                     </div>

@@ -1,96 +1,67 @@
-import { useRef, useEffect, useCallback } from "react";
+import { useEffect } from "react";
+import { useVoiceVisualizer } from "react-voice-visualizer";
 import useJobPostingStore from "./useJobPostingStore";
-import { toast } from "sonner";
 
 /**
  * useVoiceRecording
- * Abstracts MediaRecorder logic from components.
- * Connects recording state to the Zustand store.
+ * Wraps useVoiceVisualizer and connects it to the Zustand store.
  */
 const useVoiceRecording = () => {
-    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-    const chunksRef = useRef<Blob[]>([]);
-    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const recorderControls = useVoiceVisualizer();
+    const {
+        recordedBlob,
+        isRecordingInProgress,
+        recordingTime,
+        startRecording,
+        stopRecording,
+        clearCanvas,
+    } = recorderControls;
 
     const {
-        isRecording,
-        audioBlob,
-        audioUrl,
-        recordingDuration,
         isTranscribing,
         transcriptionError,
-        setIsRecording,
         setAudioBlob,
+        setIsRecording,
         setRecordingDuration,
         clearAudio,
         transcribeVoice,
     } = useJobPostingStore();
 
-    // Clean up timer on unmount
+    // Sync isRecording state
     useEffect(() => {
-        return () => {
-            if (timerRef.current) clearInterval(timerRef.current);
-        };
-    }, []);
+        setIsRecording(isRecordingInProgress);
+    }, [isRecordingInProgress, setIsRecording]);
 
-    const startRecording = useCallback(async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const mediaRecorder = new MediaRecorder(stream);
-            mediaRecorderRef.current = mediaRecorder;
-            chunksRef.current = [];
+    // Sync recording duration
+    useEffect(() => {
+        setRecordingDuration(recordingTime);
+    }, [recordingTime, setRecordingDuration]);
 
-            mediaRecorder.ondataavailable = (e) => {
-                if (e.data.size > 0) chunksRef.current.push(e.data);
-            };
-
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(chunksRef.current, { type: "audio/webm" });
-                const url = URL.createObjectURL(blob);
-                setAudioBlob(blob, url);
-                stream.getTracks().forEach((t) => t.stop());
-            };
-
-            mediaRecorder.start();
-            setIsRecording(true);
-
-            // Duration timer
-            timerRef.current = setInterval(() => {
-                setRecordingDuration(useJobPostingStore.getState().recordingDuration + 1);
-            }, 1000);
-        } catch (err) {
-            toast.error("Microphone access denied. Please allow microphone permissions.");
+    // Sync recorded blob to store when recording stops
+    useEffect(() => {
+        if (recordedBlob) {
+            const url = URL.createObjectURL(recordedBlob);
+            setAudioBlob(recordedBlob, url);
         }
-    }, [setIsRecording, setAudioBlob, setRecordingDuration]);
+    }, [recordedBlob, setAudioBlob]);
 
-    const stopRecording = useCallback(() => {
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-            mediaRecorderRef.current.stop();
-        }
-        setIsRecording(false);
-        if (timerRef.current) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-        }
-    }, [setIsRecording]);
-
-    const discardRecording = useCallback(() => {
+    const discardRecording = () => {
+        clearCanvas();
         clearAudio();
         setRecordingDuration(0);
-    }, [clearAudio, setRecordingDuration]);
+    };
 
     const formatDuration = (seconds: number) => {
         const m = Math.floor(seconds / 60).toString().padStart(2, "0");
-        const s = (seconds % 60).toString().padStart(2, "0");
+        const s = Math.floor(seconds % 60).toString().padStart(2, "0");
         return `${m}:${s}`;
     };
 
     return {
-        isRecording,
-        audioBlob,
-        audioUrl,
-        recordingDuration,
-        formattedDuration: formatDuration(recordingDuration),
+        recorderControls,
+        isRecording: isRecordingInProgress,
+        recordedBlob,
+        formattedDuration: formatDuration(recordingTime),
         isTranscribing,
         transcriptionError,
         startRecording,

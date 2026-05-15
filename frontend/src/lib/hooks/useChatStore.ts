@@ -68,8 +68,8 @@ const useChatStore = create<ChatState>((set, get) => ({
     },
 
     sendMessage: async (jobId: string, text: string) => {
-        const { role } = useAuthStore.getState()
-        if (!role) {
+        const { user } = useAuthStore.getState()
+        if (!user) {
             toast.error("You must be logged in to send messages")
             return false
         }
@@ -77,7 +77,7 @@ const useChatStore = create<ChatState>((set, get) => ({
         const tempId = `temp_${Date.now()}`
         const optimisticMessage: ChatMessage = {
             id: tempId,
-            senderId: role,
+            senderId: user.id,
             text,
             timestamp: new Date(),
             status: 'sending'
@@ -89,7 +89,7 @@ const useChatStore = create<ChatState>((set, get) => ({
         }))
 
         // 2. API Call
-        const res = await chatApi.sendMessage(jobId, text, role)
+        const res = await chatApi.sendMessage(jobId, text, user.id)
         
         if (res.success && res.data) {
             // 3. Success Update
@@ -112,10 +112,10 @@ const useChatStore = create<ChatState>((set, get) => ({
 
     retryMessage: async (jobId: string) => {
         const { messages } = get()
-        const { role } = useAuthStore.getState()
-        const failedMsg = [...messages].reverse().find(m => m.status === 'failed' && m.senderId === role)
+        const { user } = useAuthStore.getState()
+        const failedMsg = [...messages].reverse().find(m => m.status === 'failed' && m.senderId === user?.id)
         
-        if (!failedMsg || !role) return false
+        if (!failedMsg || !user) return false
 
         // 1. Reset status to sending
         set(state => ({
@@ -125,7 +125,7 @@ const useChatStore = create<ChatState>((set, get) => ({
         }))
 
         // 2. Retry API call
-        const res = await chatApi.sendMessage(jobId, failedMsg.text, role)
+        const res = await chatApi.sendMessage(jobId, failedMsg.text, user.id)
         
         if (res.success && res.data) {
             set(state => ({

@@ -1,12 +1,13 @@
-import { Mic, RotateCcw, Check, AlertCircle } from "lucide-react";
+import { Mic, Check, AlertCircle, Trash2 } from "lucide-react";
+import { VoiceVisualizer } from "react-voice-visualizer";
 import useVoiceRecording from "@/lib/hooks/useVoiceRecording";
-import RecordingIndicator from "./RecordingIndicator";
 import UploadState from "./UploadState";
 
 const VoiceRecorder = () => {
     const {
+        recorderControls,
         isRecording,
-        audioUrl,
+        recordedBlob,
         formattedDuration,
         isTranscribing,
         transcriptionError,
@@ -21,12 +22,29 @@ const VoiceRecorder = () => {
     }
 
     return (
-        <div className="flex flex-col items-center gap-6 py-6">
-            {/* Waveform / Idle Indicator */}
-            <RecordingIndicator
-                isRecording={isRecording}
-                formattedDuration={formattedDuration}
-            />
+        <div className="flex flex-col items-center gap-6 py-6 w-full">
+            {/* Visualizer */}
+            <div className="w-full bg-gray-50/50 rounded-3xl p-4 border border-accent/20 relative overflow-hidden min-h-[160px] flex flex-col items-center justify-center">
+                <VoiceVisualizer
+                    controls={recorderControls}
+                    width="100%"
+                    height={120}
+                    mainBarColor="#3b82f6"
+                    secondaryBarColor="#93c5fd"
+                    barWidth={3}
+                    gap={2}
+                />
+
+                {/* Custom Timer Overlay */}
+                <div className="absolute top-4 right-6 flex items-center gap-2">
+                    {isRecording && (
+                        <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                    )}
+                    <span className={`font-mono text-sm font-bold ${isRecording ? "text-primary" : "text-text-muted"}`}>
+                        {formattedDuration}
+                    </span>
+                </div>
+            </div>
 
             {/* Error */}
             {transcriptionError && (
@@ -37,34 +55,31 @@ const VoiceRecorder = () => {
             )}
 
             {/* Controls */}
-            {!audioUrl ? (
+            {!recordedBlob ? (
                 // Recording Controls
-                <button
-                    onMouseDown={startRecording}
-                    onTouchStart={startRecording}
-                    onMouseUp={stopRecording}
-                    onTouchEnd={stopRecording}
-                    className={`w-20 h-20 rounded-full flex items-center justify-center shadow-xl transition-all duration-200 active:scale-95 ${
-                        isRecording
-                            ? "bg-red-500 shadow-red-500/30 animate-pulse scale-110"
-                            : "bg-primary shadow-primary/30 hover:bg-primary2"
-                    }`}
-                    aria-label={isRecording ? "Stop recording" : "Hold to record"}
-                >
-                    <Mic size={32} className="text-white" />
-                </button>
+                <div className="flex flex-col items-center gap-4">
+                    <button
+                        onMouseDown={startRecording}
+                        onTouchStart={startRecording}
+                        onMouseUp={stopRecording}
+                        onTouchEnd={stopRecording}
+                        className={`w-20 h-20 rounded-full flex items-center justify-center shadow-xl transition-all duration-200 active:scale-95 ${isRecording
+                                ? "bg-red-500 shadow-red-500/30 animate-pulse scale-110"
+                                : "bg-primary shadow-primary/30 hover:bg-primary2"
+                            }`}
+                        aria-label={isRecording ? "Stop recording" : "Hold to record"}
+                    >
+                        <Mic size={32} className="text-white" />
+                    </button>
+                    <p className="text-[12px] text-text-muted font-medium text-center max-w-[240px]">
+                        {isRecording ? "Release to stop recording" : "Hold the button and describe your job clearly."}
+                    </p>
+                </div>
             ) : (
                 // Review Controls
                 <div className="flex flex-col items-center gap-4 w-full">
-                    {/* Playback */}
-                    <audio
-                        src={audioUrl}
-                        controls
-                        className="w-full h-10 rounded-xl"
-                    />
-
                     <p className="text-[12px] text-text-muted font-medium text-center">
-                        Review your recording before submitting
+                        Review your recording before submitting. Use the visualizer above to play back.
                     </p>
 
                     <div className="flex gap-3 w-full">
@@ -72,24 +87,18 @@ const VoiceRecorder = () => {
                             onClick={discardRecording}
                             className="flex-1 flex items-center justify-center gap-2 border border-accent rounded-2xl py-3.5 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all active:scale-95"
                         >
-                            <RotateCcw size={16} />
-                            Re-record
+                            <Trash2 size={16} />
+                            Discard
                         </button>
                         <button
                             onClick={transcribeVoice}
                             className="flex-[2] flex items-center justify-center gap-2 bg-primary text-white rounded-2xl py-3.5 text-sm font-bold hover:bg-primary2 transition-all active:scale-95 shadow-lg shadow-primary/20"
                         >
                             <Check size={16} />
-                            Use Recording
+                            Transcribe Voice
                         </button>
                     </div>
                 </div>
-            )}
-
-            {!isRecording && !audioUrl && (
-                <p className="text-[12px] text-text-muted font-medium text-center max-w-[240px]">
-                    Hold the button and describe your job clearly. Release when done.
-                </p>
             )}
         </div>
     );

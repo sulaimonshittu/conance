@@ -7,7 +7,7 @@ const Hero = () => {
         <div className="flex flex-col gap-s3 px-s3 py-s3 bg-white">
             {/* Title & Subtitle */}
             <div className="flex flex-col gap-2">
-                <h1 className="text-h2 font-bold text-gray-900 leading-tight tracking-tight font-heading">
+                <h1 className="text-h3 font-bold text-gray-900 leading-tight tracking-tight font-heading">
                     Find trusted  artisans <br /> across  Lagos
                 </h1>
                 <p className="text-b3 text-text-muted font-medium font-body">

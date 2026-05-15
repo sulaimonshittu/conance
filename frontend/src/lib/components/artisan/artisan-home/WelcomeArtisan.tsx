@@ -1,4 +1,4 @@
-import useAuthStore from "@/lib/hooks/useAuthStore"
+import useAuthStore from "@lib/hooks/useAuthStore"
 import { Briefcase, Inbox, TrendingUp, ShieldCheck, Sparkles } from "lucide-react"
 
 const SUMMARY_DATA = [
@@ -38,13 +38,13 @@ const SUMMARY_DATA = [
 ]
 
 const WelcomeArtisan = () => {
-    const currentArtisan = useAuthStore((state) => state.userDetails)
+    const user = useAuthStore((state) => state.user)
 
     return (
         <section>
             <div className="mb-8">
                 <h1 className="font-serif text-4xl font-bold text-primary mb-s2">
-                    Welcome back, {currentArtisan?.name?.split(' ')[0]}
+                    Welcome back, {user?.name?.split(' ')[0]}
                 </h1>
                 <p className="text-slate-500">
                     Here's what's happening with your work

@@ -3,41 +3,43 @@ import { formatNaira } from "@/lib/components/artisan/artisan-requests/RequestCa
 import { useState } from "react"
 import ModalMobile from "@/lib/components/common/modals/ModalMobile"
 import WithdrawForm from "./WithdrawForm"
+import useAuthStore from "@/lib/hooks/useAuthStore"
 
-const EARNINGS_DATA = [
-    {
-        title: "Total Earned",
-        amount: 85000,
-        footer: "All-time earnings",
-        icon: TrendingUp,
-        iconBg: "bg-[#FFF3EE]",
-        iconColor: "text-primary",
-    },
-    {
-        title: "Pending Payout",
-        amount: 60000,
-        footer: "In active projects",
-        icon: Clock,
-        iconBg: "bg-green-50",
-        iconColor: "text-green-700",
-    },
-    {
-        title: "Available",
-        amount: 35000,
-        footer: "Withdraw to bank",
-        icon: CreditCard,
-        iconBg: "bg-yellow-50",
-        iconColor: "text-yellow-700",
-        footerAction: true,
-        withdraw: (setWithdraw: (val: boolean) => void) => { setWithdraw(true) }
-    }
-]
+
 
 
 const EarningsSummary = () => {
+    const { user } = useAuthStore()
     const [withdraw, setWithdraw] = useState<boolean>(false)
 
-
+    const EARNINGS_DATA = [
+        {
+            title: "Total Earned",
+            amount: 85000, // Still mock until backend supports history
+            footer: "All-time earnings",
+            icon: TrendingUp,
+            iconBg: "bg-[#FFF3EE]",
+            iconColor: "text-primary",
+        },
+        {
+            title: "Pending Payout",
+            amount: 60000, // Still mock until backend supports active escrow
+            footer: "In active projects",
+            icon: Clock,
+            iconBg: "bg-green-50",
+            iconColor: "text-green-700",
+        },
+        {
+            title: "Available Balance",
+            amount: user?.walletBalance || 0,
+            footer: "Withdraw to bank",
+            icon: CreditCard,
+            iconBg: "bg-yellow-50",
+            iconColor: "text-yellow-700",
+            footerAction: true,
+            withdraw: () => { setWithdraw(true) }
+        }
+    ]
 
     return (
         <div className="grid grid-cols-1 gap-s3">
@@ -56,7 +58,10 @@ const EarningsSummary = () => {
                             <p className="font-serif text-h2 font-extrabold text-gray-900 tracking-tight">
                                 {formatNaira(item.amount)}
                             </p>
-                            <button onClick={() => item.withdraw?.(setWithdraw)} className={`text-b3 mt-s1 font-medium ${item.footerAction ? 'text-primary cursor-pointer hover:underline' : 'text-text-muted opacity-60'}`}>
+                            <button 
+                                onClick={() => item.withdraw?.()} 
+                                className={`text-b3 mt-s1 font-medium ${item.footerAction ? 'text-primary cursor-pointer hover:underline' : 'text-text-muted opacity-60'}`}
+                            >
                                 {item.footer}
                             </button>
                         </div>

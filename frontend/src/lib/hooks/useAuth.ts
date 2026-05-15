@@ -8,7 +8,7 @@ export const useAuth = () => {
     const {
         isAuth,
         role,
-        userDetails,
+        user,
         isLoading,
         error,
         login: storeLogin,
@@ -52,7 +52,7 @@ export const useAuth = () => {
     return {
         isAuth,
         role,
-        userDetails,
+        user,
         isLoading,
         login,
         register,

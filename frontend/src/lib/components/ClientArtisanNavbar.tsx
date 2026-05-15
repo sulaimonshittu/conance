@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useAuth } from "@lib/hooks/useAuth"
 
 const ClientArtisanNavBar = () => {
-    const { userDetails, logout, isLoading, role } = useAuth()
+    const { user, logout, isLoading, role } = useAuth()
     const [isMenuOpen, setIsMenuOpen] = useState(false)
 
     return (
@@ -19,11 +19,15 @@ const ClientArtisanNavBar = () => {
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                     className="flex items-center gap-2 hover:bg-slate-50 p-1.5 rounded-xl transition-colors"
                 >
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary">
-                        <User size={18} />
+                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary overflow-hidden">
+                        {user?.avatar ? (
+                            <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                        ) : (
+                            <User size={18} />
+                        )}
                     </div>
                     <span className="text-b3 font-bold text-gray-700 hidden sm:block">
-                        {userDetails?.name || "User"}
+                        {user?.name || "User"}
                     </span>
                     <ChevronDown size={16} className={`text-text-muted transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -37,8 +41,8 @@ const ClientArtisanNavBar = () => {
                         <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-accent z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                             <div className="p-s2 border-b border-accent bg-slate-50/50">
                                 <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Signed in as</p>
-                                <p className="text-b2 font-bold text-gray-900 truncate">{userDetails?.name}</p>
-                                <p className="text-b4 font-medium text-text-muted truncate">{userDetails?.email}</p>
+                                <p className="text-b2 font-bold text-gray-900 truncate">{user?.name}</p>
+                                <p className="text-b4 font-medium text-text-muted truncate">{user?.email}</p>
                             </div>
                             
                             <div className="p-1">
