@@ -33,8 +33,9 @@ type VirtualAccountRequest struct {
 	Email       string `json:"email"`
 	Bvn         string `json:"bvn"`
 	Gender      string `json:"gender"`
-	Address     string `json:"address"`
+	Address            string `json:"address"`
 	CustomerIdentifier string `json:"customer_identifier"`
+	BeneficiaryAccount string `json:"beneficiary_account"`
 }
 
 type VirtualAccountResponse struct {

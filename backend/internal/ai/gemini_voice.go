@@ -1,34 +1,74 @@
 package ai
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
-
-	"github.com/google/generative-ai-go/genai"
+	"io"
+	"net/http"
+	"os"
+	"strings"
 )
 
 // TranscribeVoiceNote uses Gemini to convert artisan voice notes into text (STT)
-// This supports artisans like "Mama Chika" who prefer speaking over typing.
 func (s *GeminiService) TranscribeVoiceNote(ctx context.Context, audioData []byte, mimeType string) (string, error) {
+	apiKey := strings.TrimSpace(os.Getenv("GEMINI_API_KEY"))
+	modelName := "gemini-2.5-flash"
+	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", modelName, apiKey)
+
 	prompt := "Transcribe this voice note accurately. If it's in Nigerian Pidgin or a local dialect, translate it to clear English while preserving the intent."
 
-	// Create a blob part for the audio
-	audioPart := genai.Blob{
-		MIMEType: mimeType, // e.g., "audio/mp3", "audio/wav", "audio/ogg"
-		Data:     audioData,
+	requestBody := map[string]interface{}{
+		"contents": []interface{}{
+			map[string]interface{}{
+				"role": "user",
+				"parts": []interface{}{
+					map[string]interface{}{
+						"inline_data": map[string]interface{}{
+							"mime_type": mimeType,
+							"data":      base64.StdEncoding.EncodeToString(audioData),
+						},
+					},
+					map[string]interface{}{"text": prompt},
+				},
+			},
+		},
 	}
 
-	resp, err := s.model.GenerateContent(ctx, audioPart, genai.Text(prompt))
+	jsonData, _ := json.Marshal(requestBody)
+	req, _ := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonData))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("failed to transcribe voice note: %w", err)
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("gemini api error (%d): %s", resp.StatusCode, string(body))
 	}
 
-	if len(resp.Candidates) > 0 {
-		var transcription string
-		for _, part := range resp.Candidates[0].Content.Parts {
-			transcription += fmt.Sprintf("%v", part)
-		}
-		return transcription, nil
+	var result struct {
+		Candidates []struct {
+			Content struct {
+				Parts []struct {
+					Text string `json:"text"`
+				} `json:"parts"`
+			} `json:"content"`
+		} `json:"candidates"`
+	}
+
+	if err := json.Unmarshal(body, &result); err != nil {
+		return "", err
+	}
+
+	if len(result.Candidates) > 0 && len(result.Candidates[0].Content.Parts) > 0 {
+		return result.Candidates[0].Content.Parts[0].Text, nil
 	}
 
 	return "", fmt.Errorf("no transcription generated")

@@ -56,7 +56,7 @@ func main() {
 	// Initialize Services
 	smsService := service.NewSMSService()
 	authService := service.NewAuthService(rdb, smsService)
-	escrowService := service.NewEscrowService(squadClient, jobRepo)
+	escrowService := service.NewEscrowService(squadClient, jobRepo, userRepo)
 	jobService := service.NewJobService(jobRepo, userRepo, geminiService)
 	proposalService := service.NewProposalService(proposalRepo, jobRepo, userRepo, escrowService, geminiService)
 	chatService := service.NewChatService(chatRepo, geminiService)

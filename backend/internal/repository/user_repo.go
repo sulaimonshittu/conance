@@ -19,7 +19,12 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 type User struct {
 	ID          uuid.UUID
 	PhoneNumber string
+	Email       string
 	FullName    string
+	BVN         string
+	DOB         string
+	Gender      string
+	Address     string
 	Role        string
 	IsVerified  bool
 	TrustScore  int
@@ -35,17 +40,17 @@ type ArtisanProfile struct {
 
 func (r *UserRepository) Create(ctx context.Context, user *User) error {
 	query := `
-		INSERT INTO users (id, phone_number, full_name, role)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO users (id, phone_number, email, full_name, bvn, dob, gender, address, role)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 	`
-	_, err := r.db.Exec(ctx, query, user.ID, user.PhoneNumber, user.FullName, user.Role)
+	_, err := r.db.Exec(ctx, query, user.ID, user.PhoneNumber, user.Email, user.FullName, user.BVN, user.DOB, user.Gender, user.Address, user.Role)
 	return err
 }
 
 func (r *UserRepository) GetByPhone(ctx context.Context, phone string) (*User, error) {
-	query := `SELECT id, phone_number, full_name, role, is_verified, trust_score FROM users WHERE phone_number = $1`
+	query := `SELECT id, phone_number, email, full_name, bvn, dob, gender, address, role, is_verified, trust_score FROM users WHERE phone_number = $1`
 	var user User
-	err := r.db.QueryRow(ctx, query, phone).Scan(&user.ID, &user.PhoneNumber, &user.FullName, &user.Role, &user.IsVerified, &user.TrustScore)
+	err := r.db.QueryRow(ctx, query, phone).Scan(&user.ID, &user.PhoneNumber, &user.Email, &user.FullName, &user.BVN, &user.DOB, &user.Gender, &user.Address, &user.Role, &user.IsVerified, &user.TrustScore)
 	if err != nil {
 		return nil, err
 	}
@@ -53,9 +58,9 @@ func (r *UserRepository) GetByPhone(ctx context.Context, phone string) (*User, e
 }
 
 func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (*User, error) {
-	query := `SELECT id, phone_number, full_name, role, is_verified, trust_score FROM users WHERE id = $1`
+	query := `SELECT id, phone_number, email, full_name, bvn, dob, gender, address, role, is_verified, trust_score FROM users WHERE id = $1`
 	var user User
-	err := r.db.QueryRow(ctx, query, id).Scan(&user.ID, &user.PhoneNumber, &user.FullName, &user.Role, &user.IsVerified, &user.TrustScore)
+	err := r.db.QueryRow(ctx, query, id).Scan(&user.ID, &user.PhoneNumber, &user.Email, &user.FullName, &user.BVN, &user.DOB, &user.Gender, &user.Address, &user.Role, &user.IsVerified, &user.TrustScore)
 	if err != nil {
 		return nil, err
 	}
