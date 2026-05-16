@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ChevronLeft, CheckCircle2 } from "lucide-react";
+import { ChevronLeft, CheckCircle2, ShieldCheck } from "lucide-react";
 import useJobPostingStore from "@/lib/hooks/useJobPostingStore";
 
 import JobInputTabs from "@/lib/components/client/job-posting/JobInputTabs";
@@ -11,11 +11,15 @@ import RecommendedArtisans from "@/lib/components/client/job-posting/Recommended
 import JobSummary from "@/lib/components/client/job-posting/JobSummary";
 import JobPostActions from "@/lib/components/client/job-posting/JobPostActions";
 import UploadState from "@/lib/components/client/job-posting/UploadState";
+import FundingModal from "@/lib/components/client/job-posting/FundingModal";
+import { useState } from "react";
+
 
 const CreateJob = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const artisanId = searchParams.get("artisanId"); // Pre-fill artisan from ArtisanDetails
+    const [isFundingModalOpen, setIsFundingModalOpen] = useState(false);
 
     const {
         draft,
@@ -24,13 +28,14 @@ const CreateJob = () => {
         isAnalysing,
         analysisError,
         isSubmitting,
-        submittedJobId,
+        submittedJob,
         setActiveTab,
         analyseJob,
         submitJob,
         resetDraft,
         clearErrors,
     } = useJobPostingStore();
+
 
     // Reset store on mount to avoid stale data from previous visits
     useEffect(() => {
@@ -49,7 +54,7 @@ const CreateJob = () => {
     };
 
     // ── Success State ────────────────────────────────────────────
-    if (submittedJobId) {
+    if (submittedJob) {
         return (
             <div className="min-h-screen bg-[#FCF9F6] flex flex-col items-center justify-center p-s3 text-center">
                 <div className="bg-green-50 p-6 rounded-full mb-6 shadow-sm">
@@ -57,25 +62,61 @@ const CreateJob = () => {
                 </div>
                 <h1 className="text-h3 font-bold text-gray-900 mb-2">Job Posted!</h1>
                 <p className="text-b3 text-text-muted mb-8 max-w-[280px]">
-                    Your job is now live. Artisans will start sending proposals shortly.
+                    Your job is now live. {submittedJob.squadVirtualAccount ? "Please fund the escrow wallet to start receiving proposals." : "Artisans will start sending proposals shortly."}
                 </p>
+
+                {submittedJob.squadVirtualAccount && (
+                    <div className="w-full max-w-[320px] bg-white p-s3 rounded-3xl border border-primary/20 shadow-xl shadow-primary/5 mb-8 animate-in fade-in zoom-in-95 duration-500">
+                        <p className="text-[11px] text-primary font-extrabold uppercase tracking-widest mb-3">Temporary Escrow Wallet</p>
+                        <div className="flex flex-col gap-1 mb-4">
+                            <span className="text-h4 font-serif font-extrabold text-gray-900 tracking-wider">{submittedJob.squadVirtualAccount}</span>
+                            <span className="text-[12px] text-text-muted font-bold italic">Squad Virtual Account (GTBank)</span>
+                        </div>
+                        <button
+                            onClick={() => setIsFundingModalOpen(true)}
+                            className="w-full bg-primary text-white py-3.5 rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                        >
+                            <ShieldCheck size={18} />
+                            Fund This Job
+                        </button>
+                    </div>
+                )}
+
                 <div className="flex flex-col gap-3 w-full max-w-[320px]">
+                    {!submittedJob.squadVirtualAccount && (
+                         <button
+                            onClick={() => navigate("/client/jobs")}
+                            className="w-full bg-primary text-white py-4 rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all"
+                        >
+                            View My Jobs
+                        </button>
+                    )}
                     <button
                         onClick={() => navigate("/client/jobs")}
-                        className="w-full bg-primary text-white py-4 rounded-2xl font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all"
+                        className="w-full border border-accent py-4 rounded-2xl font-bold text-gray-700 hover:bg-gray-50 active:scale-95 transition-all"
                     >
-                        View My Jobs
+                        Go to Dashboard
                     </button>
                     <button
                         onClick={() => { resetDraft(); }}
-                        className="w-full border border-accent py-4 rounded-2xl font-bold text-gray-700 hover:bg-gray-50 active:scale-95 transition-all"
+                        className="w-full text-b3 text-text-muted font-bold hover:text-gray-900 py-2 transition-colors"
                     >
                         Post Another Job
                     </button>
                 </div>
+
+                {isFundingModalOpen && submittedJob.squadVirtualAccount && (
+                    <FundingModal 
+                        onClose={() => setIsFundingModalOpen(false)}
+                        accountNumber={submittedJob.squadVirtualAccount}
+                        jobTitle={submittedJob.title}
+                        budgetKobo={submittedJob.budgetKobo}
+                    />
+                )}
             </div>
         );
     }
+
 
     // ── Analysing full-screen overlay ────────────────────────────
     if (isAnalysing) {

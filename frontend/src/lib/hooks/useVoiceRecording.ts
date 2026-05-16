@@ -5,6 +5,7 @@ import useJobPostingStore from "./useJobPostingStore";
 /**
  * useVoiceRecording
  * Wraps useVoiceVisualizer and connects it to the Zustand store.
+ * Exposes both transcribeVoice (text mode) and submitVoiceJob (direct voice posting).
  */
 const useVoiceRecording = () => {
     const recorderControls = useVoiceVisualizer();
@@ -19,12 +20,15 @@ const useVoiceRecording = () => {
 
     const {
         isTranscribing,
+        isSubmitting,
         transcriptionError,
+        submissionError,
         setAudioBlob,
         setIsRecording,
         setRecordingDuration,
         clearAudio,
         transcribeVoice,
+        submitVoiceJob,
     } = useJobPostingStore();
 
     // Sync isRecording state
@@ -63,11 +67,14 @@ const useVoiceRecording = () => {
         recordedBlob,
         formattedDuration: formatDuration(recordingTime),
         isTranscribing,
+        isSubmitting,
         transcriptionError,
+        submissionError,
         startRecording,
         stopRecording,
         discardRecording,
         transcribeVoice,
+        submitVoiceJob,
     };
 };
 

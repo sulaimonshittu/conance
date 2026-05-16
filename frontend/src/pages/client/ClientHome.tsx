@@ -1,5 +1,6 @@
 import Hero from "@/lib/components/client/home/Hero"
 import TopRatedArtisansNearYou from "@/lib/components/client/home/TopRatedArtisansNearYou"
+import ArtisanRecommendations from "@/lib/components/client/home/ArtisanRecommendations"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Search } from "lucide-react"
@@ -41,9 +42,11 @@ const ClientHome = () => {
                 </form>
             </div>
 
+            <ArtisanRecommendations />
             <TopRatedArtisansNearYou />
         </div>
     )
 }
+
 
 export default ClientHome

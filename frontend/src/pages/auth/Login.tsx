@@ -4,15 +4,33 @@ import { useForm } from "react-hook-form"
 import { Link, useNavigate } from "react-router-dom"
 import { ArrowLeft } from "lucide-react"
 import { useAuth } from "@/lib/hooks/useAuth"
+import { useState } from "react"
+import { toast } from "sonner"
 
 const Login = () => {
     const { register, handleSubmit, formState: { errors } } = useForm()
     const navigate = useNavigate()
-    const { role, login, isLoading } = useAuth()
+    const { role, requestOtp, verifyOtp, isLoading } = useAuth()
+    
+    const [step, setStep] = useState<1 | 2>(1)
+    const [phoneNumber, setPhoneNumber] = useState("")
 
-    const onSubmit = async (data: any) => {
+    const onPhoneSubmit = async (data: any) => {
+        if (!role) {
+            toast.error("Please select a role first.")
+            return
+        }
+        const success = await requestOtp(data.phoneNumber)
+        if (success) {
+            setPhoneNumber(data.phoneNumber)
+            setStep(2)
+            toast.success("OTP sent to your phone!")
+        }
+    }
+
+    const onOtpSubmit = async (data: any) => {
         if (role) {
-            await login(data.email, data.password, role)
+            await verifyOtp(phoneNumber, data.otp, role)
         }
     }
 
@@ -20,22 +38,44 @@ const Login = () => {
         <section className="min-h-screen px-s4 py-s5 flex flex-col gap-s3">
 
             <div className="flex justify-between">
-                <Button variant="outline" onClick={() => navigate("/")}>
+                <Button variant="outline" onClick={() => step === 2 ? setStep(1) : navigate("/")}>
                     <ArrowLeft />
                 </Button>
             </div>
 
             <h1 className="text-h1 font-bold">
-                Welcome Back {role === "artisan" ? "Artisan" : "Client"}
+                {step === 1 ? `Welcome Back ${role === "artisan" ? "Artisan" : "Client"}` : "Enter OTP"}
             </h1>
-            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-s3">
-                <Input type="text" placeholder="Email" {...register("email")} label="Email" required error={errors.email?.message as string} />
-                <Input type="password" placeholder="Password" {...register("password")} label="Password" required error={errors.password?.message as string} />
-                <Button type="submit" isLoading={isLoading} loadingText="Logging in...">Login</Button>
-            </form>
+            
+            {step === 1 ? (
+                <form onSubmit={handleSubmit(onPhoneSubmit)} className="flex flex-col gap-s3">
+                    <Input 
+                        type="tel" 
+                        placeholder="+2348000000000" 
+                        {...register("phoneNumber", { required: "Phone number is required" })} 
+                        label="Phone Number" 
+                        error={errors.phoneNumber?.message as string} 
+                    />
+                    <Button type="submit" isLoading={isLoading} loadingText="Sending OTP...">Get OTP</Button>
+                </form>
+            ) : (
+                <form onSubmit={handleSubmit(onOtpSubmit)} className="flex flex-col gap-s3">
+                    <p className="text-sm text-text-muted">Enter the 6-digit code sent to {phoneNumber}</p>
+                    <Input 
+                        type="text" 
+                        placeholder="123456" 
+                        maxLength={6}
+                        {...register("otp", { required: "OTP is required", minLength: { value: 6, message: "Must be 6 digits" } })} 
+                        label="One-Time Password" 
+                        error={errors.otp?.message as string} 
+                    />
+                    <Button type="submit" isLoading={isLoading} loadingText="Verifying...">Verify & Login</Button>
+                </form>
+            )}
+            
             <p className="text-text-muted text-center">
-                By signing up with email or social you agree to our
-                <a href="#" className="text-primary underline">Terms of Use</a> and <a href="#" className="text-primary underline">Policies</a>
+                By signing up with phone you agree to our
+                <a href="#" className="text-primary underline ml-1">Terms of Use</a> and <a href="#" className="text-primary underline ml-1">Policies</a>
             </p>
             <p className="text-center mt-auto">Don't have an account? <Link to="/signup" className="text-primary underline">Sign Up</Link></p>
         </section>

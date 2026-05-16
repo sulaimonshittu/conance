@@ -1,4 +1,5 @@
-import { mockResponse, delay, type ApiResponse } from "./apiUtils";
+import { type ApiResponse } from "./apiUtils";
+import { apiPost, apiGet, apiPostRaw } from "./apiClient";
 
 // ─────────────────────────────────────────────
 // Types
@@ -9,8 +10,8 @@ export interface JobDraft {
     description: string;
     category: string;
     location: string;
-    budgetMin: number;
-    budgetMax: number;
+    /** Budget in Naira (will be converted to kobo on submit). */
+    budget: number;
     voiceAudioUrl?: string;
 }
 
@@ -48,15 +49,17 @@ export interface SubmittedJob {
     id: string;
     title: string;
     category: string;
-    status: "pending" | "analysing" | "matched" | "posted";
+    status: string;
     createdAt: string;
+    squadVirtualAccount?: string;
+    budgetKobo?: number;
 }
 
 // ─────────────────────────────────────────────
-// Mock Data
+// Mock Fallbacks (for endpoints with no backend yet)
 // ─────────────────────────────────────────────
 
-const MOCK_AI_RESPONSE: AIJobAnalysis = {
+const MOCK_AI_ANALYSIS: AIJobAnalysis = {
     detectedCategory: "Carpentry",
     detectedTitle: "Custom Wooden Bookshelf",
     confidence: 94,
@@ -104,82 +107,223 @@ const MOCK_AI_RESPONSE: AIJobAnalysis = {
 
 export const jobApi = {
     /**
-     * Transcribe voice audio to text.
-     * Replace with real STT API (e.g., Whisper, Google STT).
+     * Transcribe voice audio using the real backend AI endpoint.
+     * POST /ai/transcribe — Content-Type: audio/*
+     * Returns the transcribed text string.
      */
-    transcribeVoice: async (_audioBlob: Blob) => {
-        await delay(2500); // Simulate STT processing time
-        
-        const possibleTranscriptions = [
-            "I need a custom wooden bookshelf for my living room. It should be about 6 feet tall with 5 shelves. I want it made of good quality hardwood and polished nicely.",
-            "I'm looking for a plumber to fix a leaking pipe in my kitchen. It's been dripping for two days and starting to pool under the sink. Need someone who can come today.",
-            "Can someone help me paint my three-bedroom apartment? I have the paint already, just need a professional to do the walls and ceilings carefully.",
-            "I need an electrician to install some new outdoor lighting and check the circuit breaker. Some of the switches in the hallway are flickering."
-        ];
-
-        // Simulate rare failure (10%)
-        if (Math.random() < 0.1) {
-            return mockResponse(
-                null,
-                false,
-                "Speech recognition failed. Please try again or type manually.",
-                0
+    transcribeVoice: async (audioBlob: Blob): Promise<ApiResponse<string>> => {
+        try {
+            const contentType = audioBlob.type || "audio/webm";
+            const res = await apiPostRaw<{ text?: string; transcription?: string }>(
+                "/ai/transcribe",
+                audioBlob,
+                contentType
             );
-        }
 
-        const randomText = possibleTranscriptions[Math.floor(Math.random() * possibleTranscriptions.length)];
-        
-        return mockResponse(
-            randomText,
-            true,
-            "Transcription successful",
-            0
-        );
+            if (res.success && res.data) {
+                // Normalise backend response — could be { text } or { transcription }
+                const text = res.data.text ?? res.data.transcription ?? "";
+                if (!text.trim()) {
+                    return { data: null, success: false, message: "Transcription returned empty. Please try again." };
+                }
+                return { data: text, success: true };
+            }
+
+            return {
+                data: null,
+                success: false,
+                message: res.message || "Transcription failed. Please try again or type manually.",
+            };
+        } catch (err: any) {
+            return {
+                data: null,
+                success: false,
+                message: err?.message || "Network error during transcription.",
+            };
+        }
     },
 
     /**
-     * Analyse a submitted job description using AI.
-     * Replace with real AI endpoint.
+     * Create a job directly from a voice recording.
+     */
+    voiceCreateJob: async (audioBlob: Blob, clientId: string): Promise<ApiResponse<SubmittedJob>> => {
+        try {
+            const contentType = audioBlob.type || "audio/webm";
+            const res = await apiPostRaw<any>(
+                "/jobs/voice",
+                audioBlob,
+                contentType,
+                { client_id: clientId }
+            );
+
+            if (res.success && res.data) {
+                const job: SubmittedJob = {
+                    id: res.data.id,
+                    title: res.data.title || "Voice Job",
+                    category: res.data.category || "",
+                    status: res.data.status || "pending",
+                    createdAt: res.data.createdAt || new Date().toISOString(),
+                    squadVirtualAccount: res.data.squadVirtualAccount,
+                    budgetKobo: res.data.budgetKobo,
+                };
+
+                // Save to session storage for mock persistence
+                const storedJobs = JSON.parse(sessionStorage.getItem("conance_mock_jobs") || "[]");
+                sessionStorage.setItem("conance_mock_jobs", JSON.stringify([job, ...storedJobs]));
+
+                return { data: job, success: true };
+            }
+
+            return {
+                data: null,
+                success: false,
+                message: res.message || "Failed to create job from voice.",
+            };
+        } catch (err: any) {
+            return {
+                data: null,
+                success: false,
+                message: err?.message || "Network error during voice job creation.",
+            };
+        }
+    },
+
+    /**
+     * Analyse a job description using AI (mock — no dedicated backend endpoint).
      */
     analyseJob: async (_description: string): Promise<ApiResponse<AIJobAnalysis>> => {
-        await delay(3000); // Simulate AI analysis time
-        return mockResponse(MOCK_AI_RESPONSE, true, "Analysis complete", 0);
+        await new Promise((r) => setTimeout(r, 1800));
+        return { data: MOCK_AI_ANALYSIS, success: true, message: "Analysis complete" };
     },
 
     /**
-     * Fetch AI-recommended artisans for a job.
-     * Replace with real endpoint.
+     * Fetch AI-recommended artisans for a posted job.
      */
-    fetchRecommendedArtisans: async (_jobId: string) => {
-        await delay(1200);
-        return mockResponse(MOCK_AI_RESPONSE.recommendedArtisans, true, "Artisans fetched", 0);
-    },
-
-    /**
-     * Get price estimate for a category/description.
-     */
-    getPriceEstimate: async (_category: string) => {
-        await delay(1000);
-        return mockResponse(MOCK_AI_RESPONSE.pricingEstimate, true, "Price estimate ready", 0);
-    },
-
-    /**
-     * Submit a final job for posting.
-     * Replace with real POST /jobs endpoint.
-     */
-    submitJob: async (draft: JobDraft): Promise<ApiResponse<SubmittedJob>> => {
-        await delay(2000);
-        // Simulate 5% failure
-        if (Math.random() < 0.05) {
-            return mockResponse<SubmittedJob>(null, false, "Job submission failed. Please try again.", 0);
+    fetchRecommendations: async (jobId: string): Promise<ApiResponse<AIRecommendation[]>> => {
+        try {
+            const res = await apiGet<any[]>(`/jobs/${jobId}/recommendations`);
+            if (res.success && res.data) {
+                const artisans: AIRecommendation[] = res.data.map((a: any) => ({
+                    artisanId: a.artisanId ?? a.id,
+                    artisanName: a.artisanName ?? a.name,
+                    artisanAvatar: a.artisanAvatar ?? a.avatar ?? `https://i.pravatar.cc/150?u=${a.id}`,
+                    artisanTitle: a.artisanTitle ?? a.title ?? "",
+                    matchScore: a.matchScore ?? a.score ?? 0,
+                    estimatedPrice: a.estimatedPrice ?? a.priceKobo ? (a.priceKobo / 100) : 0,
+                    estimatedDuration: a.estimatedDuration ?? "",
+                    reasoning: a.reasoning ?? "",
+                    suggestedMaterials: a.suggestedMaterials,
+                }));
+                return { data: artisans, success: true };
+            }
+            return { data: MOCK_AI_ANALYSIS.recommendedArtisans, success: true };
+        } catch {
+            return { data: MOCK_AI_ANALYSIS.recommendedArtisans, success: true };
         }
-        const job: SubmittedJob = {
-            id: `job_${Date.now()}`,
-            title: draft.title || "Untitled Job",
-            category: draft.category,
-            status: "analysing",
-            createdAt: new Date().toISOString(),
+    },
+
+    /**
+     * @deprecated — use fetchRecommendations(jobId) for real data.
+     */
+    fetchRecommendedArtisans: async (_jobId: string): Promise<ApiResponse<AIRecommendation[]>> => {
+        await new Promise((r) => setTimeout(r, 800));
+        return { data: MOCK_AI_ANALYSIS.recommendedArtisans, success: true };
+    },
+
+    /**
+     * Get price estimate for a category/description (mock — no backend endpoint).
+     */
+    getPriceEstimate: async (_category: string): Promise<ApiResponse<AIPricingEstimate>> => {
+        await new Promise((r) => setTimeout(r, 800));
+        return { data: MOCK_AI_ANALYSIS.pricingEstimate, success: true };
+    },
+
+    /**
+     * Submit a text-based job.
+     */
+    submitJob: async (draft: JobDraft, clientId: string): Promise<ApiResponse<SubmittedJob>> => {
+        try {
+            const payload = {
+                clientId,
+                title: draft.title || draft.description.slice(0, 60) || "Untitled Job",
+                description: draft.description,
+                category: draft.category || "Other",
+                budgetKobo: Math.round((draft.budget || 0) * 100),
+            };
+
+            const res = await apiPost<any>("/jobs", payload);
+
+            if (res.success && res.data) {
+                const job: SubmittedJob = {
+                    id: res.data.id,
+                    title: res.data.title,
+                    category: res.data.category,
+                    status: res.data.status || "pending",
+                    createdAt: res.data.createdAt || new Date().toISOString(),
+                    squadVirtualAccount: res.data.squadVirtualAccount,
+                    budgetKobo: res.data.budgetKobo,
+                };
+
+                // Save to session storage for mock persistence
+                const storedJobs = JSON.parse(sessionStorage.getItem("conance_mock_jobs") || "[]");
+                sessionStorage.setItem("conance_mock_jobs", JSON.stringify([job, ...storedJobs]));
+
+                return { data: job, success: true, message: "Job posted successfully!" };
+            }
+
+            return { data: null, success: false, message: res.message || "Job submission failed." };
+        } catch (err: any) {
+            return { data: null, success: false, message: err?.message || "Job submission failed." };
+        }
+    },
+
+    /**
+     * Fetch all jobs for a specific client.
+     */
+    getClientJobs: async (clientId: string): Promise<ApiResponse<any[]>> => {
+        const getMergedData = async () => {
+            const { MOCK_CLIENT_JOBS } = await import("@/lib/utils/mockData");
+            const storedJobs = JSON.parse(sessionStorage.getItem("conance_mock_jobs") || "[]");
+            // Basic mapping to match UI expectations for ClientJob
+            const mappedStored = storedJobs.map((j: any) => ({
+                id: j.id,
+                title: j.title,
+                status: j.status || "pending",
+                totalPrice: j.budgetKobo ? j.budgetKobo / 100 : 0,
+                createdAt: j.createdAt,
+                squadVirtualAccount: j.squadVirtualAccount,
+                budgetKobo: j.budgetKobo,
+                category: j.category,
+                // Mock other required fields
+                description: "Description not available",
+                artisanName: "",
+                artisanAvatar: "",
+                progress: 0,
+                releasedAmount: 0,
+                milestones: [],
+                location: "Location not set"
+            }));
+            
+            // Avoid duplicates if id exists
+            const existingIds = new Set(MOCK_CLIENT_JOBS.map(m => m.id));
+            const uniqueStored = mappedStored.filter((j: any) => !existingIds.has(j.id));
+            
+            return [...uniqueStored, ...MOCK_CLIENT_JOBS];
         };
-        return mockResponse(job, true, "Job posted successfully!", 0);
+
+        try {
+            const res = await apiGet<any[]>(`/jobs?client_id=${clientId}`);
+            if (res.success && res.data) {
+                // If the backend suddenly starts returning jobs, we can use them directly
+                return res;
+            }
+            
+            const merged = await getMergedData();
+            return { data: merged, success: true };
+        } catch {
+            const merged = await getMergedData();
+            return { data: merged, success: true };
+        }
     },
 };
+

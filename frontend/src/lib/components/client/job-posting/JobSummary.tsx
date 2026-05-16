@@ -11,10 +11,10 @@ const JobSummary = ({ draft }: JobSummaryProps) => {
         { icon: MapPin, label: "Location", value: draft.location || "Not specified" },
         {
             icon: DollarSign,
-            label: "Budget Range",
-            value: draft.budgetMin > 0
-                ? `₦${draft.budgetMin.toLocaleString()} – ₦${draft.budgetMax.toLocaleString()}`
-                : "AI will estimate"
+            label: "Budget",
+            value: draft.budget > 0
+                ? `₦${draft.budget.toLocaleString()}`
+                : "Not specified"
         },
     ];
 

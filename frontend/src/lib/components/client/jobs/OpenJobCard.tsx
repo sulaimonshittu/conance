@@ -1,12 +1,15 @@
 import { useState } from 'react'
-import { Users, Clock, Star, ChevronRight, X, MessageCircle, Check } from 'lucide-react'
+import { Users, Clock, Star, ChevronRight, X, MessageCircle, Check, Loader2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import type { ClientJob, Proposal } from '@/lib/utils/mockData'
 import ModalMobile from '@/lib/components/common/modals/ModalMobile'
+import { toast } from 'sonner'
+import { jobActionsApi } from '@/lib/api/jobActions.api'
+import FundJobModal, { type VirtualAccountInfo } from '@/lib/components/client/job-posting/JobFundingPanel'
 
 // ─── Proposal Modal Content ─────────────────────────────────────
 
-const ProposalCard = ({ proposal }: { proposal: Proposal }) => {
+const ProposalCard = ({ proposal, onHire, isHiring }: { proposal: Proposal, onHire: (proposal: Proposal) => void, isHiring: boolean }) => {
     const navigate = useNavigate()
     return (
         <div className="bg-white border border-accent/10 rounded-3xl p-4 flex flex-col gap-4 shadow-sm">
@@ -57,10 +60,11 @@ const ProposalCard = ({ proposal }: { proposal: Proposal }) => {
                         Chat
                     </button>
                     <button
-                        onClick={() => navigate(`/client/artisan-details/${proposal.artisanId}`)}
-                        className="flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-xl text-[13px] font-bold hover:bg-primary2 transition-all active:scale-95 shadow-sm shadow-primary/20"
+                        onClick={() => onHire(proposal)}
+                        disabled={isHiring}
+                        className="flex items-center gap-1.5 bg-primary text-white px-4 py-2 rounded-xl text-[13px] font-bold hover:bg-primary2 transition-all active:scale-95 shadow-sm shadow-primary/20 disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                        <Check size={15} />
+                        {isHiring ? <Loader2 size={15} className="animate-spin" /> : <Check size={15} />}
                         Hire
                     </button>
                 </div>
@@ -69,7 +73,17 @@ const ProposalCard = ({ proposal }: { proposal: Proposal }) => {
     )
 }
 
-const ProposalsDrawerContent = ({ job, onClose }: { job: ClientJob; onClose: () => void }) => (
+const ProposalsDrawerContent = ({ 
+    job, 
+    onClose, 
+    onHire, 
+    hiringProposalId 
+}: { 
+    job: ClientJob; 
+    onClose: () => void;
+    onHire: (proposal: Proposal) => void;
+    hiringProposalId: string | null;
+}) => (
     <div className="p-s3 flex flex-col gap-s3 bg-white rounded-t-3xl h-full">
         <div className="flex items-center justify-between">
             <div>
@@ -84,7 +98,12 @@ const ProposalsDrawerContent = ({ job, onClose }: { job: ClientJob; onClose: () 
         {job.proposals && job.proposals.length > 0 ? (
             <div className="flex flex-col gap-s3">
                 {job.proposals.map(p => (
-                    <ProposalCard key={p.id} proposal={p} />
+                    <ProposalCard 
+                        key={p.id} 
+                        proposal={p} 
+                        onHire={onHire} 
+                        isHiring={hiringProposalId === p.id} 
+                    />
                 ))}
             </div>
         ) : (
@@ -104,6 +123,36 @@ interface OpenJobCardProps {
 
 const OpenJobCard = ({ job }: OpenJobCardProps) => {
     const [showProposals, setShowProposals] = useState(false)
+    const [hiringProposalId, setHiringProposalId] = useState<string | null>(null)
+    const [showFundingModal, setShowFundingModal] = useState(false)
+    const [acceptedProposal, setAcceptedProposal] = useState<Proposal | null>(null)
+    const navigate = useNavigate()
+
+    const handleHire = async (proposal: Proposal) => {
+        setHiringProposalId(proposal.id as string)
+        const res = await jobActionsApi.assignJob(job.id as string, proposal.artisanId)
+        if (res.success) {
+            setAcceptedProposal(proposal)
+            setShowProposals(false)
+            setShowFundingModal(true)
+        } else {
+            toast.error(res.message)
+        }
+        setHiringProposalId(null)
+    }
+
+    const handleConfirmFunding = () => {
+        toast.success("Transfer confirmed! We will notify you once received.")
+        setShowFundingModal(false)
+        navigate("/client/jobs") 
+    }
+
+    // Mock virtual account if backend didn't provide one
+    const virtualAccount: VirtualAccountInfo = {
+        bankName: "Squad Virtual Bank",
+        accountNumber: "0123456789",
+        accountName: "CONANCE-JOB-WALLET",
+    }
 
     return (
         <>
@@ -137,14 +186,57 @@ const OpenJobCard = ({ job }: OpenJobCardProps) => {
                     </div>
                     <ChevronRight size={20} className="text-text-muted group-hover:text-primary transition-colors" />
                 </button>
+
+                {/* Fund Wallet Button (if available) */}
+                {job.squadVirtualAccount && (
+                    <button
+                        onClick={() => {
+                            setAcceptedProposal(null) // Not hiring specific proposal yet
+                            setShowFundingModal(true)
+                        }}
+                        className="flex items-center justify-center w-full bg-primary/5 text-primary hover:bg-primary/10 py-3 rounded-2xl border border-primary/20 transition-all font-bold text-sm"
+                    >
+                        Fund Wallet
+                    </button>
+                )}
             </div>
+
 
             {/* Proposals Modal */}
             {showProposals && (
                 <ModalMobile
                     onClose={() => setShowProposals(false)}
                     Content={({ onClose }: { onClose: () => void }) => (
-                        <ProposalsDrawerContent job={job} onClose={onClose} />
+                        <ProposalsDrawerContent 
+                            job={job} 
+                            onClose={onClose} 
+                            onHire={handleHire}
+                            hiringProposalId={hiringProposalId}
+                        />
+                    )}
+                    direction="bottom"
+                />
+            )}
+
+            {/* Funding Modal */}
+            {showFundingModal && (
+                <ModalMobile
+                    onClose={() => setShowFundingModal(false)}
+                    Content={() => (
+                        <FundJobModal
+                            onClose={() => setShowFundingModal(false)}
+                            onConfirm={handleConfirmFunding}
+                            isConfirming={false}
+                            error={null}
+                            amount={acceptedProposal 
+                                ? parseInt(acceptedProposal.price.replace(/,/g, ''), 10) || 0 
+                                : (typeof job.totalPrice === 'string' ? parseInt(job.totalPrice.replace(/,/g, ''), 10) || 0 : job.totalPrice)}
+                            virtualAccount={job.squadVirtualAccount ? {
+                                bankName: "Squad Virtual Bank",
+                                accountNumber: job.squadVirtualAccount,
+                                accountName: "Conance Job Wallet"
+                            } : virtualAccount}
+                        />
                     )}
                     direction="bottom"
                 />

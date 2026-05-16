@@ -1,6 +1,8 @@
 import { create } from "zustand";
-import { jobApi, type JobDraft, type AIJobAnalysis } from "../api/job.api";
+import { jobApi, type JobDraft, type AIJobAnalysis, type SubmittedJob } from "../api/job.api";
 import { toast } from "sonner";
+import useAuthStore from "./useAuthStore";
+
 
 // ─────────────────────────────────────────────
 // State Interface
@@ -28,23 +30,28 @@ interface JobPostingState {
 
     // Submission
     isSubmitting: boolean;
-    submittedJobId: string | null;
+    submittedJob: SubmittedJob | null;
     submissionError: string | null;
 
-    // Actions
+
+    // Actions — Draft
     setActiveTab: (tab: "voice" | "text") => void;
     updateDraft: (updates: Partial<JobDraft>) => void;
     resetDraft: () => void;
 
+    // Actions — Audio
     setAudioBlob: (blob: Blob | null, url: string | null) => void;
     setIsRecording: (val: boolean) => void;
     setRecordingDuration: (val: number) => void;
     clearAudio: () => void;
 
+    // Actions — Async
     transcribeVoice: () => Promise<void>;
+    submitVoiceJob: () => Promise<boolean>;
     analyseJob: () => Promise<void>;
     submitJob: () => Promise<boolean>;
 
+    // Utilities
     clearErrors: () => void;
 }
 
@@ -57,8 +64,7 @@ const DEFAULT_DRAFT: JobDraft = {
     description: "",
     category: "",
     location: "",
-    budgetMin: 0,
-    budgetMax: 0,
+    budget: 0,
     voiceAudioUrl: undefined,
 };
 
@@ -83,7 +89,7 @@ const useJobPostingStore = create<JobPostingState>((set, get) => ({
     analysisError: null,
 
     isSubmitting: false,
-    submittedJobId: null,
+    submittedJob: null,
     submissionError: null,
 
     // ── Tab ──────────────────────────────────
@@ -99,11 +105,12 @@ const useJobPostingStore = create<JobPostingState>((set, get) => ({
             audioBlob: null,
             audioUrl: null,
             aiAnalysis: null,
-            submittedJobId: null,
+            submittedJob: null,
             transcriptionError: null,
             analysisError: null,
             submissionError: null,
         }),
+
 
     // ── Audio ────────────────────────────────
     setAudioBlob: (blob, url) => set({ audioBlob: blob, audioUrl: url }),
@@ -111,7 +118,7 @@ const useJobPostingStore = create<JobPostingState>((set, get) => ({
     setRecordingDuration: (val) => set({ recordingDuration: val }),
     clearAudio: () => set({ audioBlob: null, audioUrl: null, recordingDuration: 0 }),
 
-    // ── Transcription ────────────────────────
+    // ── Transcription (POST /ai/transcribe) ──
     transcribeVoice: async () => {
         const { audioBlob } = get();
         if (!audioBlob) {
@@ -125,18 +132,60 @@ const useJobPostingStore = create<JobPostingState>((set, get) => ({
                 set((state) => ({
                     draft: { ...state.draft, description: res.data as string },
                     isTranscribing: false,
-                    activeTab: "text", // Auto-switch to text tab to show result
+                    activeTab: "text", // Auto-switch so user can review + edit
                 }));
-                toast.success("Voice transcribed! You can edit the text below.");
+                toast.success("Voice transcribed! Review and edit before posting.");
             } else {
-                set({ transcriptionError: res.message || "Transcription failed", isTranscribing: false });
+                set({
+                    transcriptionError: res.message || "Transcription failed.",
+                    isTranscribing: false,
+                });
+                toast.error(res.message || "Transcription failed. Please try again.");
             }
         } catch {
-            set({ transcriptionError: "An unexpected error occurred during transcription", isTranscribing: false });
+            const msg = "An unexpected error occurred during transcription.";
+            set({ transcriptionError: msg, isTranscribing: false });
+            toast.error(msg);
         }
     },
 
-    // ── AI Analysis ──────────────────────────
+    // ── Voice Job (POST /jobs/voice) ─────────
+    submitVoiceJob: async () => {
+        const { audioBlob } = get();
+        if (!audioBlob) {
+            toast.error("No audio recorded yet.");
+            return false;
+        }
+
+        const { user } = useAuthStore.getState();
+        if (!user) {
+            toast.error("You must be logged in to post a job.");
+            return false;
+        }
+
+        set({ isSubmitting: true, submissionError: null });
+        try {
+            const res = await jobApi.voiceCreateJob(audioBlob, user.id);
+            if (res.success && res.data) {
+                const job = res.data as SubmittedJob;
+                set({ submittedJob: job, isSubmitting: false });
+                toast.success("Voice job posted! Artisans will see it shortly.");
+                return true;
+            }
+
+            const msg = res.message || "Failed to post voice job.";
+            set({ submissionError: msg, isSubmitting: false });
+            toast.error(msg);
+            return false;
+        } catch {
+            const msg = "An unexpected error occurred. Please try again.";
+            set({ submissionError: msg, isSubmitting: false });
+            toast.error(msg);
+            return false;
+        }
+    },
+
+    // ── AI Analysis (mock — no backend endpoint) ──
     analyseJob: async () => {
         const { draft } = get();
         if (!draft.description.trim()) {
@@ -153,40 +202,48 @@ const useJobPostingStore = create<JobPostingState>((set, get) => ({
                     isAnalysing: false,
                     draft: {
                         ...state.draft,
-                        category: analysis.detectedCategory,
+                        category: state.draft.category || analysis.detectedCategory,
                         title: state.draft.title || analysis.detectedTitle,
-                        budgetMin: analysis.pricingEstimate.min,
-                        budgetMax: analysis.pricingEstimate.max,
+                        // Pre-fill budget with typical estimate if not set
+                        budget: state.draft.budget || analysis.pricingEstimate.typical,
                     },
                 }));
             } else {
-                set({ analysisError: res.message || "Analysis failed", isAnalysing: false });
+                set({ analysisError: res.message || "Analysis failed.", isAnalysing: false });
             }
         } catch {
             set({ analysisError: "AI analysis failed. Please try again.", isAnalysing: false });
         }
     },
 
-    // ── Submit ───────────────────────────────
+    // ── Text Job Submit (POST /jobs) ──────────
     submitJob: async () => {
         const { draft } = get();
         if (!draft.description.trim()) {
             toast.error("Please describe the job.");
             return false;
         }
+
+        const { user } = useAuthStore.getState();
+        if (!user) {
+            toast.error("You must be logged in to post a job.");
+            return false;
+        }
+
         set({ isSubmitting: true, submissionError: null });
         try {
-            const res = await jobApi.submitJob(draft);
+            const res = await jobApi.submitJob(draft, user.id);
             if (res.success && res.data) {
-                const submitted = res.data as { id: string };
-                set({ submittedJobId: submitted.id, isSubmitting: false });
-                toast.success("Job posted successfully!");
+                const submitted = res.data as SubmittedJob;
+                set({ submittedJob: submitted, isSubmitting: false });
+                toast.success("Job posted! Artisans will now see it.");
                 return true;
-            } else {
-                set({ submissionError: res.message || "Submission failed", isSubmitting: false });
-                toast.error(res.message || "Job submission failed.");
-                return false;
             }
+
+            const msg = res.message || "Submission failed.";
+            set({ submissionError: msg, isSubmitting: false });
+            toast.error(msg);
+            return false;
         } catch {
             const msg = "An unexpected error occurred. Please try again.";
             set({ submissionError: msg, isSubmitting: false });
@@ -197,7 +254,11 @@ const useJobPostingStore = create<JobPostingState>((set, get) => ({
 
     // ── Utilities ────────────────────────────
     clearErrors: () =>
-        set({ transcriptionError: null, analysisError: null, submissionError: null }),
+        set({
+            transcriptionError: null,
+            analysisError: null,
+            submissionError: null,
+        }),
 }));
 
 export default useJobPostingStore;

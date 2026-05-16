@@ -63,6 +63,21 @@ export interface Transaction {
     amount: number;
 }
 
+export interface JobWallet {
+    id: string;
+    jobId: string;
+    status: "pending" | "funded";
+    fundedAmount: number;
+    estimatedBudget: number;
+    lockedFunds: number;
+    virtualAccount: {
+        bankName: string;
+        accountNumber: string;
+        accountName: string;
+    };
+    expiresAt?: string;
+}
+
 export interface PendingProposal {
     id: string | number;
     customerAvatar: string;
@@ -614,9 +629,10 @@ export interface ClientJob {
     totalPrice: string;
     releasedAmount: string;
     progress: number;
-    status: 'open' | 'active' | 'completed' | 'cancelled';
+    status: 'pending' | 'open' | 'active' | 'completed' | 'cancelled';
     milestones: { name: string; completed: boolean }[];
     date: string;
+    squadVirtualAccount?: string;
     // Only on open jobs
     proposalCount?: number;
     proposals?: Proposal[];

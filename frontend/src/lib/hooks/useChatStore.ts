@@ -78,7 +78,8 @@ const useChatStore = create<ChatState>((set, get) => ({
         const optimisticMessage: ChatMessage = {
             id: tempId,
             senderId: user.id,
-            text,
+            body: text,
+            text: text, // Keep for backward compatibility with UI
             timestamp: new Date(),
             status: 'sending'
         }
@@ -116,6 +117,8 @@ const useChatStore = create<ChatState>((set, get) => ({
         const failedMsg = [...messages].reverse().find(m => m.status === 'failed' && m.senderId === user?.id)
         
         if (!failedMsg || !user) return false
+        
+        const messageBody = failedMsg.body || failedMsg.text || "";
 
         // 1. Reset status to sending
         set(state => ({
@@ -125,7 +128,7 @@ const useChatStore = create<ChatState>((set, get) => ({
         }))
 
         // 2. Retry API call
-        const res = await chatApi.sendMessage(jobId, failedMsg.text, user.id)
+        const res = await chatApi.sendMessage(jobId, messageBody, user.id)
         
         if (res.success && res.data) {
             set(state => ({

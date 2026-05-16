@@ -126,62 +126,110 @@ cd conance
 
 ### 2. Configure Environment Variables
 
-Copy the example environment file and fill in your credentials:
+The application requires environment variables for both the backend and the frontend.
+
+#### Backend Configuration
+
+Navigate to the `backend` directory and create an `.env` file:
 
 ```bash
-cp backend/.env.example backend/.env
+cd backend
+cp .env.example .env
 ```
 
-See the [Environment Variables](#environment-variables) section for a full reference.
+**Backend `.env` Reference:**
 
-### 3. Start the Application (Windows)
+| Variable | Description | Default / Example |
+|---|---|---|
+| `ENV` | Environment type (`dev` or `prod`). | `dev` |
+| `HTTP_ADDR` | Port where the backend API will run. | `:8080` |
+| `JWT_SECRET` | Secret key for signing JWT auth tokens. | `change_me` |
+| `ACCESS_TTL` | Lifespan of JWT access tokens. | `15m` |
+| `REFRESH_TTL` | Lifespan of JWT refresh tokens. | `720h` |
+| `DATABASE_URL` | PostgreSQL connection string. | `postgres://conance_user:conance_password@localhost:5432/conance_db?sslmode=disable` |
+| `REDIS_URL` | Redis connection string. | `redis://localhost:6379/0` |
+| `SQUAD_BASE_URL` | Base URL for Squad API. | `https://sandbox-api-d.squadco.com` |
+| `SQUAD_SECRET_KEY` | Squad API Secret Key. | `sandbox_sk_...` |
+| `SQUAD_PUBLIC_KEY` | Squad API Public Key. | `sandbox_pk_...` |
+| `SQUAD_MERCHANT_ID` | Squad Merchant ID. | `SB7AX74J3X` |
+| `SQUAD_WEBHOOK_SECRET` | Secret to verify incoming Squad webhooks. | `your_webhook_secret_here` |
+| `GEMINI_API_KEY` | API Key for Google Gemini (used for AI matching & voice). | `AIza...` |
 
-A single script handles everything — it starts the Docker containers, runs database migrations, seeds the database, and launches both the API server and the background worker:
+#### Frontend Configuration
 
+Navigate to the `frontend` directory and create an `.env` file:
+
+```bash
+cd ../frontend
+cp .env.example .env  # Or create it manually
+```
+
+**Frontend `.env` Reference:**
+
+| Variable | Description | Default / Example |
+|---|---|---|
+| `VITE_API_BASE_URL` | Base URL pointing to the running backend API. | `http://localhost:8080/api/v1` |
+
+---
+
+## Running the Application
+
+### Option A: Quick Start (Windows)
+
+A single script handles starting Docker containers, running database migrations, seeding the database, and launching both the API server and the background worker.
+
+**Terminal 1 (Backend):**
 ```cmd
 .\backend\start.bat
 ```
 
-### 4. Start the Frontend
-
-In a separate terminal:
-
+**Terminal 2 (Frontend):**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-The frontend will be available at `http://localhost:5173` by default.
+### Option B: Manual Start (Any OS)
 
----
+If you are not on Windows or prefer to start things manually:
 
-## Running the Application
-
-### Backend Only (manual)
-
-Start the infrastructure services:
-
+**1. Start Infrastructure (Docker):**
 ```bash
 cd backend
 docker compose up -d
 ```
 
-Run the API server:
-
+**2. Start the Backend API Server:**
 ```bash
+cd backend
 go run ./cmd/api
 ```
 
-Run the background worker (in a separate terminal):
-
+**3. Start the Background Worker:**
+(In a new terminal window)
 ```bash
+cd backend
 go run ./cmd/worker
 ```
 
+**4. Start the Frontend:**
+(In a new terminal window)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend will be available at [http://localhost:5173](http://localhost:5173).
+
+---
+
+## Development & Testing
+
 ### Simulating a Squad Webhook (Development)
 
-Use the provided PowerShell script to simulate an incoming payment webhook during local testing:
+Use the provided PowerShell script to simulate an incoming payment webhook during local testing. This bypasses the need for an internet-exposed webhook URL when testing the escrow flow locally.
 
 ```powershell
 .\backend\scripts\squad-simulate-webhook.ps1
@@ -191,9 +239,5 @@ Use the provided PowerShell script to simulate an incoming payment webhook durin
 
 ## API Documentation
 
-Full endpoint documentation is available in [backend/docs/API.md](backend/docs/API.md).
-
-For a guided walkthrough of the full job lifecycle, see [backend/docs/DEMO.md](backend/docs/DEMO.md).
-
----
-
+- **Full endpoint reference:** [backend/docs/API.md](backend/docs/API.md)
+- **Guided job lifecycle walkthrough:** [backend/docs/DEMO.md](backend/docs/DEMO.md)

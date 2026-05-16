@@ -1,10 +1,14 @@
 import { mockResponse, delay } from "./apiUtils";
+import { apiGet, apiPost } from "./apiClient";
 
 export interface ChatMessage {
     id: string;
     senderId: string; // 'artisan' or 'client' for our mock
-    text: string;
-    timestamp: Date;
+    body: string;
+    text?: string; // deprecated alias, use body
+    redactedBody?: string | null;
+    createdAt?: string;
+    timestamp: Date; // Keep for local state ordering
     status: 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
 }
 
@@ -17,15 +21,7 @@ export interface JobContext {
     totalAmount: number;
 }
 
-// Mock Data
-const MOCK_MESSAGES: Record<string, ChatMessage[]> = {
-    "proj1": [
-        { id: "msg1", senderId: "client", text: "Hello, I wanted to check on the progress of the wardrobe.", timestamp: new Date(Date.now() - 3600000 * 2), status: "read" },
-        { id: "msg2", senderId: "artisan", text: "Hi! I'm currently working on the main frame. Should be done by tomorrow.", timestamp: new Date(Date.now() - 3600000 * 1), status: "read" },
-        { id: "msg3", senderId: "client", text: "Great, let me know when you need the next material payment.", timestamp: new Date(Date.now() - 1800000), status: "read" },
-    ]
-};
-
+// Mock Data for context (since /jobs/{id} is not yet available)
 const MOCK_JOB_CONTEXT: Record<string, JobContext> = {
     "proj1": {
         id: "proj1",
@@ -34,22 +30,6 @@ const MOCK_JOB_CONTEXT: Record<string, JobContext> = {
         partnerAvatar: "https://i.pravatar.cc/150?img=20",
         jobTitle: "Modern Wardrobe Construction",
         totalAmount: 150000
-    },
-    "proj2": {
-        id: "proj2",
-        status: "completed",
-        partnerName: "Samuel Johnson",
-        partnerAvatar: "https://i.pravatar.cc/150?img=11",
-        jobTitle: "Door Lock Installation",
-        totalAmount: 8000
-    },
-    "proj3": {
-        id: "proj3",
-        status: "pending",
-        partnerName: "Grace Aminu",
-        partnerAvatar: "https://i.pravatar.cc/150?img=41",
-        jobTitle: "Kitchen Sink Fix",
-        totalAmount: 12000
     }
 };
 
@@ -62,7 +42,26 @@ export const chatApi = {
 
     /** Fetch conversation history and job context */
     getChatContext: async (jobId: string) => {
-        await delay(1000);
+        // Fetch real messages from backend
+        let messages: ChatMessage[] = [];
+        try {
+            const res = await apiGet<any[]>(`/jobs/${jobId}/messages`);
+            if (res.success && res.data) {
+                messages = res.data.map(m => ({
+                    id: m.id,
+                    senderId: m.senderId,
+                    body: m.body,
+                    text: m.body, // fallback
+                    redactedBody: m.redactedBody,
+                    createdAt: m.createdAt,
+                    timestamp: new Date(m.createdAt),
+                    status: 'read'
+                }));
+            }
+        } catch (error) {
+            console.error("Failed to fetch messages", error);
+        }
+
         const context = MOCK_JOB_CONTEXT[jobId] || {
             id: jobId,
             status: "accepted", // Default to accepted for testing
@@ -71,32 +70,32 @@ export const chatApi = {
             jobTitle: "Test Job",
             totalAmount: 50000
         };
-        const messages = MOCK_MESSAGES[jobId] || [];
+        
         return mockResponse({ context, messages }, true, "Chat loaded");
     },
 
     /** Send a new message */
-    sendMessage: async (jobId: string, text: string, senderId: string) => {
-        await delay(1200); // Simulate network latency
-        
-        // Simulate a 20% failure rate for testing retry
-        if (Math.random() < 0.2) {
-            return mockResponse(null, false, "Failed to send message. Please retry.");
+    sendMessage: async (jobId: string, body: string, senderId: string) => {
+        try {
+            const res = await apiPost<any>(`/jobs/${jobId}/messages`, { body, senderId });
+            if (res.success && res.data) {
+                const m = res.data;
+                const newMessage: ChatMessage = {
+                    id: m.id,
+                    senderId: m.senderId,
+                    body: m.body,
+                    text: m.body,
+                    redactedBody: m.redactedBody,
+                    createdAt: m.createdAt,
+                    timestamp: new Date(m.createdAt || Date.now()),
+                    status: 'sent'
+                };
+                return mockResponse(newMessage, true, "Message sent");
+            }
+            return mockResponse(null, false, res.message || "Failed to send message");
+        } catch (error: any) {
+            return mockResponse(null, false, error.message || "Failed to send message");
         }
-
-        const newMessage: ChatMessage = {
-            id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            senderId,
-            text,
-            timestamp: new Date(),
-            status: 'sent'
-        };
-        
-        // In a real app, this would append to the DB and possibly emit a webhook
-        if (!MOCK_MESSAGES[jobId]) MOCK_MESSAGES[jobId] = [];
-        MOCK_MESSAGES[jobId].push(newMessage);
-        
-        return mockResponse(newMessage, true, "Message sent");
     },
 
     /** Role actions */

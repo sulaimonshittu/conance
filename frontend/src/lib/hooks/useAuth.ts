@@ -11,8 +11,8 @@ export const useAuth = () => {
         user,
         isLoading,
         error,
-        login: storeLogin,
-        register: storeRegister,
+        requestOtp: storeRequestOtp,
+        verifyOtp: storeVerifyOtp,
         logout: storeLogout,
         clearError
     } = useAuthStore()
@@ -25,23 +25,18 @@ export const useAuth = () => {
         }
     }, [error, clearError])
 
-    const login = useCallback(async (email: string, password: string, role: "client" | "artisan") => {
-        const success = await storeLogin(email, password, role)
+    const requestOtp = useCallback(async (phoneNumber: string) => {
+        return await storeRequestOtp(phoneNumber)
+    }, [storeRequestOtp])
+
+    const verifyOtp = useCallback(async (phoneNumber: string, otp: string, role: "client" | "artisan") => {
+        const success = await storeVerifyOtp(phoneNumber, otp, role)
         if (success) {
             toast.success(`Welcome back, ${role}!`)
             navigate(role === "artisan" ? "/artisan" : "/client")
         }
         return success
-    }, [storeLogin, navigate])
-
-    const register = useCallback(async (name: string, email: string, role: "client" | "artisan") => {
-        const success = await storeRegister(name, email, role)
-        if (success) {
-            toast.success("Account created successfully!")
-            navigate(role === "artisan" ? "/artisan" : "/client")
-        }
-        return success
-    }, [storeRegister, navigate])
+    }, [storeVerifyOtp, navigate])
 
     const logout = useCallback(async () => {
         await storeLogout()
@@ -54,8 +49,9 @@ export const useAuth = () => {
         role,
         user,
         isLoading,
-        login,
-        register,
+        error,
+        requestOtp,
+        verifyOtp,
         logout
     }
 }

@@ -95,10 +95,13 @@ const RoleBasedProfileLayout = ({ role }: RoleBasedProfileLayoutProps) => {
                 {activeTab === "personal" && (
                     <ProfileForm 
                         initialData={{ 
-                            name: displayUser.name, 
-                            email: displayUser.email,
-                            bio: "about" in displayUser ? (displayUser as any).about : ("bio" in displayUser ? (displayUser as any).bio : ""),
+                            name: displayUser.name,
+                            email: displayUser.email || "",
+                            bio: displayUser.bio || "",
                             title: "title" in displayUser ? displayUser.title : "",
+
+
+
                             hourlyPrice: "hourlyPrice" in displayUser ? (displayUser as any).hourlyPrice : ""
                         }} 
                         isUpdating={isUpdating}

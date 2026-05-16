@@ -16,6 +16,7 @@ import Work from '@/pages/artisan/jobs/Work'
 import RequestJob from '@/pages/artisan/jobs/RequestJob'
 import OngoingJobDetails from '@/pages/artisan/jobs/OngoingJobDetails'
 import CompletedJobDetails from '@/pages/artisan/jobs/CompletedJobDetails'
+import ArtisanRecommendedJobs from '@/pages/artisan/jobs/ArtisanRecommendedJobs'
 import ArtisanProfile from '@/pages/artisan/profile/Profile'
 
 //Client Imports
@@ -66,6 +67,7 @@ function App() {
             <Route path="request-job/:id" element={<RequestJob />} />
             <Route path="ongoing-job/:id" element={<OngoingJobDetails />} />
             <Route path="completed-job/:id" element={<CompletedJobDetails />} />
+            <Route path="recommended" element={<ArtisanRecommendedJobs />} />
             <Route path="profile" element={<ArtisanProfile />} />
           </Route>
           {/* client routes*/}
