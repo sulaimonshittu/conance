@@ -50,7 +50,9 @@ func NewGeminiService(ctx context.Context) (*GeminiService, error) {
 		return nil, err
 	}
 
-	model := client.GenerativeModel("gemini-1.5-flash")
+	// gemini-2.5-flash has separate quota from 2.0-flash
+	model := client.GenerativeModel("gemini-2.5-flash")
+	
 	return &GeminiService{
 		client: client,
 		model:  model,

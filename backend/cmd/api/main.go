@@ -56,7 +56,7 @@ func main() {
 	// Initialize Services
 	smsService := service.NewSMSService()
 	authService := service.NewAuthService(rdb, smsService)
-	escrowService := service.NewEscrowService(squadClient, jobRepo)
+	escrowService := service.NewEscrowService(squadClient, jobRepo, userRepo)
 	jobService := service.NewJobService(jobRepo, userRepo, geminiService)
 	proposalService := service.NewProposalService(proposalRepo, jobRepo, userRepo, escrowService, geminiService)
 	chatService := service.NewChatService(chatRepo, geminiService)
@@ -76,6 +76,20 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+
+	// Basic CORS middleware
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+			if r.Method == "OPTIONS" {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	})
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Post("/auth/otp", authHandler.RequestOTP)

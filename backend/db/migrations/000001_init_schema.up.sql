@@ -1,3 +1,4 @@
+-- +goose Up
 -- Enable PostGIS extension
 CREATE EXTENSION IF NOT EXISTS postgis;
 
@@ -5,7 +6,12 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     phone_number VARCHAR(20) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE,
     full_name VARCHAR(255),
+    bvn VARCHAR(20),
+    dob VARCHAR(20),
+    gender VARCHAR(10),
+    address TEXT,
     role VARCHAR(20) NOT NULL CHECK (role IN ('client', 'artisan', 'admin')),
     is_verified BOOLEAN DEFAULT FALSE,
     trust_score INT DEFAULT 50, -- 0-100

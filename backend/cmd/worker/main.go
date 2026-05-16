@@ -37,6 +37,7 @@ func main() {
 	rdb := redis.NewClient(opts)
 
 	jobRepo := repository.NewJobRepository(pool)
+	userRepo := repository.NewUserRepository(pool)
 	squadClient := payment.NewSquadClient()
 
 	geminiService, err := ai.NewGeminiService(ctx)
@@ -44,7 +45,7 @@ func main() {
 		log.Fatalf("Failed to init Gemini: %v", err)
 	}
 	
-	escrowService := service.NewEscrowService(squadClient, jobRepo)
+	escrowService := service.NewEscrowService(squadClient, jobRepo, userRepo)
 
 	log.Println("Conance Worker started. Listening for tasks...")
 
